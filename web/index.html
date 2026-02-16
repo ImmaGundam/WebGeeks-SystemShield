@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SystemShield</title>
+    <script type="text/javascript" src="/eel.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body { background: #f4f7f9; color: #334155; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { background: #ffffff; border-right: 1px solid #e2e8f0; height: 100vh; position: fixed; width: 240px; }
+        .main-content { margin-left: 240px; padding: 30px; }
+        .nav-link { color: #64748b; font-weight: 500; padding: 12px 20px; border-radius: 8px; margin-bottom: 5px; cursor: pointer; display: flex; align-items: center; text-decoration: none; }
+        .nav-link.active { background: #eff6ff; color: #2563eb; }
+        .card { background: #ffffff; border: none; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 15px; border-left: 4px solid #2563eb !important; }
+        .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .bg-good { background: #dcfce7; color: #166534; }
+        .bg-bad { background: #fee2e2; color: #991b1b; }
+        .bg-caution { background: #fef3c7; color: #92400e; }
+        .scroll-list { max-height: 180px; overflow-y: auto; background: #f8fafc; border-radius: 8px; padding: 10px; font-size: 0.8rem; }
+        .icon-blue { color: #2563eb; margin-right: 8px; }
+        .prog-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #edf2f7; padding: 3px 0; font-size: 0.75rem; }
+        .prog-item .badge { font-size: 0.6rem; padding: 2px 6px; }
+        .about-links a { text-decoration: none; color: #64748b; transition: 0.2s; font-size: 0.9rem; }
+        .about-links a:hover { color: #2563eb; }
+        .header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+        .risk-wheel-container { width: 100px; height: 100px; position: relative; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15)); }
+        .risk-wheel-container canvas { width: 100% !important; height: 100% !important; }
+        .risk-center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; font-weight: bold; }
+        .risk-center-text .number { font-size: 1.3rem; line-height: 1; }
+        .risk-center-text .label { font-size: 0.55rem; text-transform: uppercase; color: #64748b; }
+        .security-row { display: flex; flex-wrap: wrap; gap: 8px; }
+        .security-item { flex: 1; min-width: 100px; padding: 8px; background: #f8fafc; border-radius: 8px; }
+        .security-item .label { font-size: 0.7rem; color: #64748b; margin-bottom: 2px; }
+        .security-item .value { font-size: 0.85rem; font-weight: 600; }
+        .compact-card { padding: 15px !important; }
+        .section-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; }
+        .text-caution { color: #d97706; }
+        .help-link { color: #94a3b8; font-size: 0.65rem; margin-left: 4px; cursor: pointer; text-decoration: none; opacity: 0.6; }
+        .help-link:hover { opacity: 1; color: #2563eb; }
+        .risk-alert { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+        .risk-alert .close-btn { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 1rem; padding: 0 4px; opacity: 0.7; }
+        .risk-alert .close-btn:hover { opacity: 1; }
+        .hardware-info { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 8px; }
+        .hardware-item { font-size: 0.75rem; color: #64748b; }
+        .hardware-item i { color: #2563eb; margin-right: 4px; }
+        .hardware-item span { color: #334155; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar p-4 d-flex flex-column">
+        <h4 class="fw-bold text-primary mb-5"><i class="bi bi-shield-check me-2"></i>SystemShield</h4>
+        <div class="nav flex-column mb-auto">
+            <div id="nav-scan" class="nav-link active" onclick="showPage('scan')"><i class="bi bi-speedometer2 me-2"></i> Dashboard</div>
+            <div id="nav-about" class="nav-link" onclick="showPage('about')"><i class="bi bi-info-circle me-2"></i> About</div>
+        </div>
+        <button onclick="runScan()" class="btn btn-primary mb-3 w-100">Start New Scan</button>
+        <button onclick="exportPDF()" class="btn btn-outline-secondary w-100">Export to PDF</button>
+    </div>
+
+    <div class="main-content">
+        <div id="page-scan">
+            <div class="header-row">
+                <div class="header-left">
+                    <h2 id="welcome-msg" class="fw-bold mb-0">Welcome,</h2>
+                    <p id="risk-msg" class="text-muted mt-1 mb-1">Ready to scan your system.</p>
+                    <div id="hardware-header" class="hardware-info"></div>
+                </div>
+                <div id="risk-wheel-wrapper" class="risk-wheel-container" style="display:none;">
+                    <canvas id="riskChart"></canvas>
+                    <div class="risk-center-text">
+                        <div id="risk-number" class="number">0</div>
+                        <div class="label">Issues</div>
+                    </div>
+                </div>
+            </div>
+            <div id="risk-alerts-box"></div>
+            <div id="remediation-box"></div>
+            <div id="report-content" class="row g-2">
+                <div class="col-12 text-center py-5"><p class="text-muted">Analysis results will appear here after scanning.</p></div>
+            </div>
+        </div>
+
+        <div id="page-about" style="display: none;">
+            <header class="mb-4"><h2 class="fw-bold">About</h2></header>
+            <div class="card p-5 text-center">
+                <i class="bi bi-shield-lock text-primary mb-3" style="font-size: 4rem;"></i>
+                <h4 class="fw-bold mb-1">WebGeeks SystemShield v1.0</h4>
+                <p class="text-muted small">SystemShield is free and open-source security software built to analyze and protect your system</p>
+                <hr class="w-25 mx-auto my-4">
+                <p class="mb-1 fw-bold">Made by James D.</p>
+                
+                <div class="about-links d-flex flex-column gap-2 mt-3">
+                    <a href="https://github.com/ImmaGundam" target="_blank"><i class="bi bi-github me-2"></i>GitHub</a>
+                    <a href="https://ko-fi.com/immagundam" target="_blank"><i class="bi bi-cup-hot-fill me-2" style="color: #ff5f5f;"></i>Support on Ko-fi</a>
+                    <a href="https://paypal.me/immagundam" target="_blank"><i class="bi bi-paypal me-2" style="color: #003087;"></i>Donate via PayPal</a>
+                </div>
+
+                <button id="updateBtn" onclick="checkUpdate()" class="btn btn-sm btn-primary mt-4">Check for Updates</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+
+let riskChartInstance = null;
+
+function showPage(p) {
+    document.getElementById('page-scan').style.display = p === 'scan' ? 'block' : 'none';
+    document.getElementById('page-about').style.display = p === 'about' ? 'block' : 'none';
+    document.getElementById('nav-scan').classList.toggle('active', p === 'scan');
+    document.getElementById('nav-about').classList.toggle('active', p === 'about');
+}
+
+async function checkUpdate() {
+    const btn = document.getElementById('updateBtn');
+    btn.innerText = "Checking...";
+    btn.disabled = true;
+
+    try {
+        let res = await eel.check_for_updates()();
+        if (res.status === "update_available") {
+            btn.className = "btn btn-sm btn-success mt-4";
+            btn.innerText = `Update Available (v${res.version}) - Click to Download`;
+            btn.disabled = false;
+            btn.onclick = () => window.open("https://github.com/ImmaGundam/SystemShield/releases", "_blank");
+        } else if (res.status === "up_to_date") {
+            btn.className = "btn btn-sm btn-outline-secondary mt-4";
+            btn.innerText = "You are on the latest version ✓";
+        } else {
+            btn.innerText = "Error checking updates";
+            btn.disabled = false;
+        }
+    } catch (e) {
+        btn.innerText = "Check for Updates";
+        btn.disabled = false;
+    }
+}
+
+function exportPDF() {
+    const element = document.getElementById('report-content');
+    const opt = {
+        margin: 10,
+        filename: 'SystemShield_Report.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+
+function closeRiskAlert(el) {
+    el.parentElement.remove();
+}
+
+function getBrowserStatusClass(status) {
+    if (status === 'good') return 'text-success';
+    if (status === 'risk') return 'text-danger';
+    return 'text-caution';
+}
+
+function getBrowserBadgeClass(status) {
+    if (status === 'good') return 'bg-good';
+    if (status === 'risk') return 'bg-bad';
+    return 'bg-caution';
+}
+
+function getHelpUrl(issue) {
+    const helpUrls = {
+        'uac': 'ms-settings:privacy',
+        'bitlocker': 'ms-settings:privacy-encryption',
+        'password': 'ms-settings:signinoptions',
+        'lockscreen': 'ms-settings:lockscreen',
+        'autologin': 'netplwiz',
+        'guest': 'lusrmgr.msc',
+        'defender': 'ms-settings:windowsdefender',
+        'firewall': 'ms-settings:windowsdefender',
+        'secureboot': 'ms-settings:recovery',
+        'tpm': 'tpm.msc',
+        'vbs': 'ms-settings:windowsdefender',
+        'admin': 'ms-settings:otherusers',
+        'rdp': 'ms-settings:remotedesktop',
+        'passwordmanager': 'ms-settings:appsfeatures',
+        'remotesoftware': 'ms-settings:appsfeatures'
+    };
+    return helpUrls[issue] || 'ms-settings:windowsdefender';
+}
+
+// Known latest browser major versions (update periodically)
+const LATEST_BROWSERS = {
+    'Google Chrome': 133,
+    'Microsoft Edge': 133,
+    'Mozilla Firefox': 135,
+    'Brave': 133,
+    'Opera': 116,
+    'Opera GX': 116,
+    'Vivaldi': 7,
+    'Arc': 1
+};
+
+function checkBrowserVersion(name, version) {
+    if (!version || version === 'Detected' || version === 'Installed') return 'caution';
+    try {
+        const major = parseInt(version.split('.')[0]);
+        if (LATEST_BROWSERS[name]) {
+            const latest = LATEST_BROWSERS[name];
+            if (major >= latest) return 'good';
+            if (major >= latest - 2) return 'caution';
+            return 'risk';
+        }
+        return 'caution';
+    } catch {
+        return 'caution';
+    }
+}
+
+function helpIcon(){
+    return `<span class="text-muted small ms-1" title="See remediation above">?</span>`;
+}
+
+function isOutdated(version){
+    if(!version || version==="Detected" || version==="Installed") return false;
+    let major = parseInt(version.split('.')[0]);
+    return major < 100;
+}
+
+function getStatusClass(value, goodValues, badValues = []) {
+    if (goodValues.includes(value)) return 'text-success';
+    if (badValues.includes(value)) return 'text-danger';
+    return 'text-caution';
+}
+
+async function runScan(){
+    showPage('scan');
+
+    const grid = document.getElementById('report-content');
+    grid.innerHTML = `
+        <div class="col-12 text-center mt-5">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2">Scanning system...</p>
+        </div>`;
+    document.getElementById('risk-wheel-wrapper').style.display = 'none';
+    document.getElementById('remediation-box').innerHTML = '';
+    document.getElementById('risk-alerts-box').innerHTML = '';
+
+    let data = await eel.perform_scan()();
+    
+    const totalIssues = (data.risk_factor || 0) + (data.caution_factor || 0);
+
+    document.getElementById('welcome-msg').innerText = `Welcome ${data.user},`;
+    
+    let riskText = '';
+    if (data.risk_factor > 0 && data.caution_factor > 0) {
+        riskText = `<span class="text-danger fw-bold">${data.risk_factor} risks</span> and <span class="text-caution fw-bold">${data.caution_factor} cautions</span>`;
+    } else if (data.risk_factor > 0) {
+        riskText = `<span class="text-danger fw-bold">${data.risk_factor} risks</span>`;
+    } else if (data.caution_factor > 0) {
+        riskText = `<span class="text-caution fw-bold">${data.caution_factor} cautions</span>`;
+    } else {
+        riskText = `<span class="text-success fw-bold">no issues</span>`;
+    }
+    document.getElementById('risk-msg').innerHTML = `We've detected ${riskText} on your system.`;
+    
+    // Hardware info instead of OS
+    document.getElementById('hardware-header').innerHTML = `
+        <div class="hardware-item"><i class="bi bi-cpu"></i><span>${data.cpu || 'Unknown'}</span></div>
+        <div class="hardware-item"><i class="bi bi-motherboard"></i><span>${data.motherboard || 'Unknown'}</span></div>
+        <div class="hardware-item"><i class="bi bi-memory"></i><span>${data.ram || 'Unknown'}</span></div>
+    `;
+    
+    // Risk alerts at top
+    let riskAlerts = '';
+    if (data.user_security?.uac === 'Disabled') riskAlerts += `<div class="risk-alert"><span><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>UAC is disabled</span><button class="close-btn" onclick="closeRiskAlert(this)">&times;</button></div>`;
+    if (data.drive_encryption === 'Not Encrypted') riskAlerts += `<div class="risk-alert"><span><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Drive is not encrypted</span><button class="close-btn" onclick="closeRiskAlert(this)">&times;</button></div>`;
+    if (data.lock_security?.password_set === 'No') riskAlerts += `<div class="risk-alert"><span><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>No password set</span><button class="close-btn" onclick="closeRiskAlert(this)">&times;</button></div>`;
+    if (data.defender_realtime === 'Disabled') riskAlerts += `<div class="risk-alert"><span><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Windows Defender real-time protection disabled</span><button class="close-btn" onclick="closeRiskAlert(this)">&times;</button></div>`;
+    if (data.auto_login === 'Enabled') riskAlerts += `<div class="risk-alert"><span><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Auto-login is enabled</span><button class="close-btn" onclick="closeRiskAlert(this)">&times;</button></div>`;
+    if (data.guest_account === 'Enabled') riskAlerts += `<div class="risk-alert"><span><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Guest account is enabled</span><button class="close-btn" onclick="closeRiskAlert(this)">&times;</button></div>`;
+    if (data.password_managers && data.password_managers.length > 0) riskAlerts += `<div class="risk-alert"><span><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Password manager detected: ${data.password_managers.join(', ')}</span><button class="close-btn" onclick="closeRiskAlert(this)">&times;</button></div>`;
+    if (data.remote_software && data.remote_software.length > 0) riskAlerts += `<div class="risk-alert"><span><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Remote software detected: ${data.remote_software.join(', ')}</span><button class="close-btn" onclick="closeRiskAlert(this)">&times;</button></div>`;
+    document.getElementById('risk-alerts-box').innerHTML = riskAlerts;
+
+    // ---------------- Remediation ----------------
+    let remediation = "";
+    if(data.user_security?.uac==="Disabled") remediation+="<li>Enable UAC in Control Panel → User Accounts</li>";
+    if(data.drive_encryption==="Not Encrypted") remediation+="<li>Enable BitLocker Drive Encryption</li>";
+    if(data.lock_security?.password_set==="No") remediation+="<li>Set a password for your user account</li>";
+    if(data.lock_security?.lock_screen==="Disabled") remediation+="<li>Enable screen lock timeout in Settings → Personalization → Lock screen</li>";
+    if(data.auto_login==="Enabled") remediation+="<li>Disable automatic login for better security</li>";
+    if(data.guest_account==="Enabled") remediation+="<li>Disable the Guest account</li>";
+    if(data.defender_realtime==="Disabled") remediation+="<li>Enable Windows Defender Real-time Protection</li>";
+    if(!data.fw_details?.windows_fw_enabled && data.fw_details?.third_party_count === 0) remediation+="<li>Enable Windows Firewall or install a firewall solution</li>";
+    if(data.password_managers && data.password_managers.length > 0) remediation+="<li>Uninstall password managers and do not use them - they create a single point of failure</li>";
+    if(data.remote_software && data.remote_software.length > 0) remediation+="<li>Uninstall remote access software when not in use - it can be exploited by attackers</li>";
+
+    if(remediation!==""){
+        document.getElementById('remediation-box').innerHTML =
+            `<div class="alert alert-danger py-2 px-3 mb-3">
+                <strong class="small">Recommended Actions:</strong>
+                <ul class="small mb-0 ps-3">${remediation}</ul>
+            </div>`;
+    }
+
+    // ---------------- Risk Wheel ----------------
+    document.getElementById('risk-wheel-wrapper').style.display = 'block';
+    document.getElementById('risk-number').innerText = totalIssues;
+    
+    if(riskChartInstance) riskChartInstance.destroy();
+    const ctx = document.getElementById('riskChart').getContext('2d');
+    
+    let chartColors, chartData;
+    if (totalIssues === 0) {
+        chartColors = ['#3b82f6'];
+        chartData = [1];
+    } else {
+        chartColors = ['#ef4444', '#f59e0b', '#22c55e'];
+        chartData = [data.risk_factor || 0, data.caution_factor || 0, Math.max(0, 10 - totalIssues)];
+    }
+    
+    riskChartInstance = new Chart(ctx,{
+        type:'doughnut',
+        data:{ datasets:[{ data: chartData, backgroundColor: chartColors, borderWidth: 0 }] },
+        options:{ cutout:'75%', plugins:{ legend:{ display: false }, tooltip:{ enabled: false } } }
+    });
+
+    // ---------------- UI Rendering ----------------
+    // Build browser list with version status
+    let browserHtml = '';
+    if (data.browsers && data.browsers.length > 0) {
+        for (const b of data.browsers) {
+            const status = checkBrowserVersion(b.name, b.version);
+            const statusClass = getBrowserStatusClass(status);
+            const badgeClass = getBrowserBadgeClass(status);
+            const statusLabel = status === 'good' ? 'Current' : status === 'risk' ? 'Outdated' : 'Check';
+            browserHtml += `
+            <div class="d-flex justify-content-between align-items-center small py-1">
+                <span>${b.name}</span>
+                <span><span class="${statusClass}">${b.version}</span> <span class="status-badge ${badgeClass}" style="font-size:0.6rem;">${statusLabel}</span></span>
+            </div>`;
+        }
+    } else {
+        browserHtml = `<div class="text-muted small">No browsers detected</div>`;
+    }
+
+    grid.innerHTML = `
+<!-- OS + USER SECURITY -->
+<div class="col-12">
+    <div class="card compact-card">
+        <div class="section-title"><i class="bi bi-cpu icon-blue"></i>Operating System & User Account</div>
+        <div class="security-row mb-2">
+            <div class="security-item">
+                <div class="label">OS</div>
+                <div class="value" style="font-size:0.75rem;">${data.os_caption || data.os_name}</div>
+            </div>
+            <div class="security-item">
+                <div class="label">Build</div>
+                <div class="value">${data.windows_build || 'N/A'}</div>
+            </div>
+            <div class="security-item">
+                <div class="label">Secure Boot</div>
+                <div class="value ${data.os_security?.secure_boot === 'Enabled' ? 'text-success':'text-danger'}">${data.os_security?.secure_boot || 'Unknown'}${data.os_security?.secure_boot !== 'Enabled' ? '<a href="#" class="help-link" title="Open Recovery settings">?</a>' : ''}</div>
+            </div>
+            <div class="security-item">
+                <div class="label">TPM</div>
+                <div class="value ${data.os_security?.tpm?.includes('Present')?'text-success':'text-danger'}">${data.os_security?.tpm || 'Unknown'}${!data.os_security?.tpm?.includes('Present') ? '<a href="#" class="help-link" title="Check TPM settings">?</a>' : ''}</div>
+            </div>
+            <div class="security-item">
+                <div class="label">Core Isolation</div>
+                <div class="value ${data.os_security?.vbs === 'Running'?'text-success':'text-danger'}">${data.os_security?.vbs || 'Unknown'}${data.os_security?.vbs !== 'Running' ? '<a href="#" class="help-link" title="Open Windows Security">?</a>' : ''}</div>
+            </div>
+            <div class="security-item">
+                <div class="label">Drive Encryption</div>
+                <div class="value ${data.drive_encryption==='Encrypted'?'text-success':'text-danger'}">${data.drive_encryption || 'Unknown'}${data.drive_encryption !== 'Encrypted' ? '<a href="#" class="help-link" title="Enable BitLocker">?</a>' : ''}</div>
+            </div>
+        </div>
+        <div class="security-row mb-2">
+            <div class="security-item">
+                <div class="label">Admin User</div>
+                <div class="value ${data.user_security?.is_admin==='Yes'?'text-danger':'text-success'}">${data.user_security?.is_admin || 'Unknown'}${data.user_security?.is_admin === 'Yes' ? '<a href="#" class="help-link" title="Consider using standard account">?</a>' : ''}</div>
+            </div>
+            <div class="security-item">
+                <div class="label">UAC</div>
+                <div class="value ${data.user_security?.uac==='Enabled'?'text-success':'text-danger'}">${data.user_security?.uac || 'Unknown'}${data.user_security?.uac !== 'Enabled' ? '<a href="#" class="help-link" title="Enable UAC">?</a>' : ''}</div>
+            </div>
+            <div class="security-item">
+                <div class="label">Account Type</div>
+                <div class="value ${data.user_security?.account_type?.includes('Microsoft')?'text-success':'text-caution'}">${data.user_security?.account_type || 'Unknown'}</div>
+            </div>
+            <div class="security-item">
+                <div class="label">Password Set</div>
+                <div class="value ${data.lock_security?.password_set==='Yes'?'text-success':'text-danger'}">${data.lock_security?.password_set || 'Unknown'}${data.lock_security?.password_set !== 'Yes' ? '<a href="#" class="help-link" title="Set a password">?</a>' : ''}</div>
+            </div>
+            <div class="security-item">
+                <div class="label">Lock Screen</div>
+                <div class="value ${data.lock_security?.lock_screen==='Enabled'?'text-success':'text-caution'}">${data.lock_security?.lock_screen || 'Unknown'}</div>
+            </div>
+            <div class="security-item">
+                <div class="label">Sleep Timeout</div>
+                <div class="value ${data.lock_security?.sleep_timeout==='Enabled'?'text-success':'text-caution'}">${data.lock_security?.sleep_timeout || 'Unknown'}</div>
+            </div>
+        </div>
+        <div class="small text-muted mb-1">Additional Security</div>
+        <div class="security-row">
+            <div class="security-item">
+                <div class="label">Guest Account</div>
+                <div class="value ${data.guest_account==='Disabled'?'text-success':'text-danger'}">${data.guest_account || 'Unknown'}${data.guest_account !== 'Disabled' ? '<a href="#" class="help-link" title="Disable Guest account">?</a>' : ''}</div>
+            </div>
+            <div class="security-item">
+                <div class="label">Auto Login</div>
+                <div class="value ${data.auto_login==='Disabled'?'text-success':'text-danger'}">${data.auto_login || 'Unknown'}${data.auto_login !== 'Disabled' ? '<a href="#" class="help-link" title="Disable Auto Login">?</a>' : ''}</div>
+            </div>
+            <div class="security-item">
+                <div class="label">Remote Desktop</div>
+                <div class="value ${data.remote_desktop==='Disabled'?'text-success':'text-caution'}">${data.remote_desktop || 'Unknown'}</div>
+            </div>
+            <div class="security-item">
+                <div class="label">Windows Update</div>
+                <div class="value ${data.windows_update==='Running'?'text-success':'text-caution'}">${data.windows_update || 'Unknown'}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECURITY SOFTWARE (AV + FIREWALL) -->
+<div class="col-md-6">
+    <div class="card compact-card">
+        <div class="section-title"><i class="bi bi-shield-shaded icon-blue"></i>Security Software</div>
+        <div class="small text-muted mb-1">Anti-Virus</div>
+        ${data.av_details && data.av_details.length>0
+            ? data.av_details.map(a=>`
+                <div class="d-flex justify-content-between align-items-center small py-1">
+                    <span>${a}</span>
+                    <span class="status-badge bg-good">Active</span>
+                </div>`).join('')
+            : `<div class="text-danger small py-1">None Detected<a href="#" class="help-link" title="Install antivirus">?</a></div>`
+        }
+        <div class="small text-muted mt-2 mb-1">Firewall</div>
+        ${data.fw_details?.products && data.fw_details.products.length>0
+            ? data.fw_details.products.map(f=>`
+                <div class="d-flex justify-content-between align-items-center small py-1">
+                    <span>${f.name}${f.profiles && f.profiles.length>0 ? ' <span class="text-muted">('+f.profiles.join(', ')+')</span>' : ''}</span>
+                    <span class="status-badge bg-good">${f.status}</span>
+                </div>`).join('')
+            : `<div class="text-danger small py-1">No Firewall Active<a href="#" class="help-link" title="Enable firewall">?</a></div>`
+        }
+        <div class="small text-muted mt-2 mb-1">Windows Defender</div>
+        <div class="d-flex justify-content-between align-items-center small py-1">
+            <span>Real-time Protection</span>
+            <span class="status-badge ${data.defender_realtime==='Enabled'?'bg-good':'bg-bad'}">${data.defender_realtime || 'Unknown'}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center small py-1">
+            <span>Definition Version</span>
+            <span class="text-muted">${data.defender_version || 'Unknown'}</span>
+        </div>
+    </div>
+</div>
+
+<!-- BROWSERS + PASSWORD MANAGERS + REMOTE SOFTWARE -->
+<div class="col-md-6">
+    <div class="card compact-card">
+        <div class="section-title"><i class="bi bi-globe icon-blue"></i>Installed Browsers</div>
+        ${browserHtml}
+        
+        <div class="small text-muted mt-3 mb-1">Password Managers</div>
+        ${data.password_managers && data.password_managers.length > 0
+            ? data.password_managers.map(pm=>`
+                <div class="d-flex justify-content-between align-items-center small py-1">
+                    <span class="text-danger">${pm}<a href="#" class="help-link" title="Uninstall password manager">?</a></span>
+                    <span class="status-badge bg-bad">Risk</span>
+                </div>`).join('')
+            : `<div class="text-success small py-1">None Detected <i class="bi bi-check-circle-fill"></i></div>`
+        }
+        
+        <div class="small text-muted mt-2 mb-1">Remote Software</div>
+        ${data.remote_software && data.remote_software.length > 0
+            ? data.remote_software.map(rs=>`
+                <div class="d-flex justify-content-between align-items-center small py-1">
+                    <span class="text-danger">${rs}<a href="#" class="help-link" title="Uninstall remote software">?</a></span>
+                    <span class="status-badge bg-bad">Risk</span>
+                </div>`).join('')
+            : `<div class="text-success small py-1">None Detected <i class="bi bi-check-circle-fill"></i></div>`
+        }
+    </div>
+</div>
+
+<!-- STORAGE -->
+<div class="col-md-4">
+    <div class="card compact-card">
+        <div class="section-title"><i class="bi bi-hdd icon-blue"></i>Storage</div>
+        ${data.storage && data.storage.map(s=>`
+            <div class="small mb-2">
+                <div class="d-flex justify-content-between">
+                    <span>${s.drive}</span>
+                    <span class="text-muted">${s.used}/${s.total}</span>
+                </div>
+                <div class="progress" style="height:6px;">
+                    <div class="progress-bar ${s.percent > 90 ? 'bg-danger' : s.percent > 75 ? 'bg-warning' : ''}" style="width:${s.percent}%"></div>
+                </div>
+            </div>`).join('')}
+    </div>
+</div>
+
+<!-- PROGRAMS -->
+<div class="col-md-8">
+    <div class="card compact-card">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="section-title mb-0"><i class="bi bi-box icon-blue"></i>Installed Programs <span class="text-muted fw-normal">(${data.program_count || 0})</span></div>
+            <select onchange="sortPrograms(this.value)" class="form-select form-select-sm" style="width:auto;font-size:0.7rem;padding:2px 8px;">
+                <option value="name-asc">Name ↑</option>
+                <option value="name-desc">Name ↓</option>
+                <option value="size-desc">Size ↓</option>
+                <option value="size-asc">Size ↑</option>
+            </select>
+        </div>
+        <div id="programList" class="scroll-list"></div>
+        <div class="d-flex justify-content-between small mt-2 pt-2 border-top">
+            <span class="text-muted">Total Size:</span>
+            <span class="fw-bold text-primary">${data.total_program_size}</span>
+        </div>
+    </div>
+</div>
+`;
+
+    // ---------------- Program Cache & Render ----------------
+    window.programCache = data.programs || [];
+    renderPrograms();
+}
+
+function sortPrograms(type){
+    if(!window.programCache) return;
+
+    let list = window.programCache;
+
+    list.sort((a,b)=>{
+        if(type==="name-asc") return a.name.localeCompare(b.name);
+        if(type==="name-desc") return b.name.localeCompare(a.name);
+        if(type==="size-asc") return a.size-b.size;
+        if(type==="size-desc") return b.size-a.size;
+    });
+
+    renderPrograms();
+}
+
+function renderPrograms(){
+    const el = document.getElementById('programList');
+    if(!el) return;
+
+    el.innerHTML =
+        window.programCache.map(p=>`
+            <div class="prog-item">
+                <div class="d-flex align-items-center gap-1" style="overflow:hidden;">
+                    <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</span>
+                    ${p.source === 'Store' ? '<span class="badge bg-info">Store</span>' : ''}
+                </div>
+                <span class="text-muted" style="white-space:nowrap;margin-left:8px;">${p.size > 0 ? p.size + ' MB' : '-'}</span>
+            </div>`).join('');
+}
+
+</script>
+</body>
+</html>
