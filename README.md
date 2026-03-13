@@ -46,14 +46,13 @@ Note: If you plug in your VirusTotal API Key and copy the EXE, it will retain it
 ### Option 2: (running in Python)
 
 You will need:
+- Windows 10 / 11
 - Python 3.x
-- pip
 
 Also Required:<br>
 eel <br>
 psutil <br>
 wmi<br>
-Chrome (Temporary, or change line 567 mode='chrome' with 'firefox' or 'edge')
 
 Run:<br>
 pip install eel psutil wmi<br>
