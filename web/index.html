@@ -1,171 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SystemShield</title>
+    <title>WebGeeks SystemShield v1.2.1</title>
     <meta name="theme-color" content="#252d3a">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="/eel.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        :root{--primary:#2563eb;--primary-light:#eff6ff;--sidebar-bg:#212f4d;--sidebar-text:#c9d5e0;--bg:#f4f7f9;--card-bg:#fff;--text:#334155;--muted:#64748b;--border:#e2e8f0;--risk:#ef4444;--risk-bg:#fef2f2;--risk-border:#fecaca;--sug-bg:#fffbeb;--sug-border:#fde68a;--sug-text:#d8a433;--good:#22c55e;--good-bg:#dcfce7;--good-text:#166534;--info-bg:#eff6ff;--info-border:#bfdbfe;--info-text:#1e40af}
-        body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;margin:0}
-        .sidebar{background:var(--sidebar-bg);height:100vh;position:fixed;width:240px;overflow-y:auto;display:flex;flex-direction:column;z-index:100}
-        .sidebar .brand{padding:20px;color:#fff;font-weight:700;font-size:1.1rem;display:flex;align-items:center;gap:8px}
-        .sidebar .brand i{font-size:1.3rem;color:var(--primary)}
-        .bg-info-subtle{background:#dbeafe;color:#1e40af}
-        .main-content{margin-left:240px;padding:30px;min-height:100vh}
-        .nav-link{color:var(--sidebar-text);font-weight:500;padding:11px 20px;border-radius:8px;margin:2px 12px;cursor:pointer;display:flex;align-items:center;text-decoration:none;font-size:.85rem;transition:all .15s}
-        .nav-link:hover{background:rgba(255,255,255,.06);color:#fff}
-        .nav-link.active{background:var(--primary);color:#fff}
-        .nav-link i{margin-right:10px;font-size:1rem}
-        .sidebar-bottom{margin-top:auto;padding:12px}
-        .sidebar-bottom .btn{font-size:.8rem}
-        .progress-bar {animation: progress-bar-stripes 2s linear infinite; } @keyframes progress-bar-stripes {    from { background-position: 40px 0; } to { background-position: 0 0; }}
-        .card{background:var(--card-bg);border:none;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);margin-bottom:15px;border-left:4px solid var(--primary)!important}
-        .status-badge{padding:3px 10px;border-radius:20px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
-        .bg-good{background:var(--good-bg);color:var(--good-text)}.bg-bad{background:#fee2e2;color:#991b1b}
-        .bg-suggestion{background:var(--sug-bg);color:var(--sug-text)}
-        .scroll-list{max-height:420px;overflow-y:auto;background:#f8fafc;border-radius:8px;padding:10px;font-size:.8rem}
-        .icon-blue{color:var(--primary);margin-right:8px}
-        .prog-item{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #edf2f7;padding:4px 0;font-size:.75rem}
-        .prog-item .badge{font-size:.55rem;padding:2px 6px}
-        .about-links a{text-decoration:none;color:var(--muted);transition:.2s;font-size:.9rem}
-        .about-links a:hover{color:var(--primary)}
-        .header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
-        .risk-wheel-container{width:100px;height:100px;position:relative;filter:drop-shadow(0 4px 8px rgba(0,0,0,.12))}
-        .risk-wheel-container canvas{width:100%!important;height:100%!important}
-        .risk-center-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;font-weight:bold}
-        .risk-center-text .number{font-size:1.3rem;line-height:1}
-        .risk-center-text .label{font-size:.55rem;text-transform:uppercase;color:var(--muted)}
-        .security-row{display:flex;flex-wrap:wrap;gap:8px}
-        .security-item{flex:1;min-width:100px;padding:8px;background:#f8fafc;border-radius:8px;position:relative}
-        .security-item .label{font-size:.7rem;color:var(--muted);margin-bottom:2px}
-        .security-item .value{font-size:.85rem;font-weight:600}
-        .compact-card{padding:15px!important}
-        .section-title{font-size:.9rem;font-weight:600;margin-bottom:10px;display:flex;align-items:center}
-        .text-suggestion{color:var(--sug-text)}.text-caution{color:#d97706}
-        .hint-icon{color:#94a3b8;font-size:.6rem;margin-left:4px;cursor:help;position:relative;display:inline-block;opacity:.5;vertical-align:middle}
-        .hint-icon:hover{opacity:1;color:var(--primary)}
-        .hint-icon .hint-popup{display:none;position:absolute;top:calc(100% + 8px);right:-8px;background:#1e293b;color:#f1f5f9;padding:8px 12px;border-radius:8px;font-size:.72rem;font-weight:400;width:240px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.25);line-height:1.4;white-space:normal;pointer-events:none}
-        .hint-icon .hint-popup::after{content:'';position:absolute;bottom:100%;right:12px;border:6px solid transparent;border-bottom-color:#1e293b}
-        .hint-icon:hover .hint-popup{display:block}
-        .fix-btn{font-size:.6rem;padding:1px 8px;border-radius:12px;background:var(--primary);color:#fff;border:none;cursor:pointer;font-weight:600;margin-left:6px;transition:all .15s;text-transform:uppercase;letter-spacing:.3px}
-        .fix-btn:hover{background:#1d4ed8;transform:scale(1.02)}
-        .fix-btn-outline{background:transparent;border:1px solid var(--primary);color:var(--primary)}
-        .fix-btn-outline:hover{background:var(--primary);color:#fff}
-        .risk-alert{background:var(--risk-bg);border:1px solid var(--risk-border);border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:.8rem}
-        .close-btn{background:none;border:none;color:var(--risk);cursor:pointer;font-size:1rem;padding:0 4px;opacity:.7;line-height:1}
-        .close-btn:hover{opacity:1}
-        .suggestion-alert{background:var(--sug-bg);border:1px solid var(--sug-border);border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:.8rem}
-        .info-alert{background:var(--info-bg);border:1px solid var(--info-border);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-size:.8rem;color:var(--info-text)}
-        .hardware-info{display:flex;gap:20px;flex-wrap:wrap;margin-top:8px}
-        .hardware-item{font-size:.75rem;color:var(--muted)}
-        .hardware-item i{color:var(--primary);margin-right:4px}
-        .hardware-item span{color:var(--text);font-weight:500}
-        .page-section{display:none}.page-section.active{display:block}
-        .search-bar{border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:.8rem;width:250px}
-        .search-bar:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 2px rgba(37,99,235,.1)}
-        .bad-sw-alert{background:var(--risk-bg);border:1px solid var(--risk-border);border-radius:8px;padding:12px;margin-bottom:15px}
-        .bad-sw-alert .title{font-weight:600;color:#991b1b;font-size:.85rem;margin-bottom:6px}
-        .bad-sw-item{font-size:.8rem;padding:4px 0;color:#991b1b;display:flex;justify-content:space-between;align-items:center}
-        .vt-result-card{background:#f8fafc;border-radius:8px;padding:15px;margin-top:15px;position:relative}
-        .vt-result-card .vt-close{position:absolute;top:8px;right:10px;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:1rem;padding:2px 6px;border-radius:4px}
-        .vt-result-card .vt-close:hover{color:var(--risk);background:#fef2f2}
-        .vt-engine{font-size:.75rem;padding:2px 0;border-bottom:1px solid #edf2f7}
-        .disc-badge{background:#fee2e2;color:#991b1b;font-size:.6rem;padding:2px 6px;border-radius:10px;font-weight:700;margin-left:6px}
-        .summary-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;justify-content:center;align-items:center}
-        .summary-modal{background:#fff;border-radius:16px;max-width:700px;width:90%;max-height:85vh;overflow-y:auto;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-        .summary-issue{padding:8px 12px;margin-bottom:6px;background:var(--risk-bg);border-radius:8px;font-size:.8rem}
-        .summary-issue .fix{color:var(--good-text);font-size:.75rem;margin-top:2px}
-        .net-section{transition:all .2s ease}
-        .net-section.minimized .net-section-body{display:none}
-        .net-section .minimize-btn{background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:.7rem;width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;position:absolute;top:12px;right:12px}
-        .net-section .minimize-btn:hover{color:var(--primary);border-color:var(--primary)}
-        .net-section-grayed{opacity:.45}.net-section-grayed:hover{opacity:.8}
-        .src-badge{font-size:.55rem;padding:1px 5px;border-radius:8px;font-weight:600;margin-left:4px}
-        .src-user{background:#e0e7ff;color:#3730a3}.src-windows{background:#dbeafe;color:#1e40af}.src-store{background:#d1fae5;color:#065f46}
-        .clickable-result{cursor:pointer;transition:background .15s;border-radius:4px;padding:1px 4px;margin:-1px -4px}
-        .clickable-result:hover{background:var(--primary-light)}
-        .browser-status-click{cursor:pointer}.browser-status-click:hover{text-decoration:underline}
-        .lang-selector{padding:8px 12px;margin:2px 12px;display:flex;align-items:center;gap:8px;color:var(--sidebar-text);font-size:.75rem;cursor:pointer;border-radius:8px}
-        .lang-selector:hover{background:rgba(255,255,255,.06)}
-        .lang-selector select{background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--sidebar-text);font-size:.72rem;border-radius:4px;padding:2px 4px;outline:none;max-width:130px}
-        .lang-selector select option{background:var(--sidebar-bg);color:var(--sidebar-text)}
-        .size-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:#e2e8f0}
-        .size-bar .seg-system{background:#3b82f6}.size-bar .seg-user{background:#8b5cf6}.size-bar .seg-store{background:#10b981}
-        .icon-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.7rem;color:var(--muted);margin-bottom:10px;padding:8px 12px;background:#f8fafc;border-radius:8px}
-        .icon-legend span{display:flex;align-items:center;gap:4px}
-        .pdf-page{page-break-after:always}.pdf-page:last-child{page-break-after:avoid}
-        .lang-warning{background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;font-size:.78rem;color:#92400e;margin-bottom:12px}
-        body.dark{--bg:#0f1117;--card-bg:#1a1d23;--text:#f1f5f9;--muted:#b0bec5;--border:#2d3748;--primary-light:#1e293b;--risk-bg:#5c282e;--risk-border:#682020;--sug-bg:#a39f62;--sug-border:#afad1d;--sug-text:#e8b94a;--good-bg:#47bd4dda;--good-text:#4ade80;--info-bg:#0d1a2d;--info-border:#1e3a5f;--info-text:#043d83;--bs-body-color:#9dabb9;--bs-heading-color:#f1f5f9;--bs-emphasis-color:#f8fafc;--bs-secondary-color:#c2d1e6;--bs-tertiary-color:#40526b;--bs-link-color:#5e99e2;--bs-link-hover-color:#93c5fd}
-        body.dark .sidebar{background:#111318}
-        body.dark .security-item,body.dark .scroll-list,body.dark .icon-legend,body.dark .vt-result-card{background:#1e2128}
-        body.dark .summary-modal{background:#1a1d23;color:var(--text)}
-        body.dark .search-bar,body.dark .form-control,body.dark .form-select{background:#1e2128;color:var(--text);border-color:var(--border)}
-        body.dark .section-title{color:#f8fafc}
-        body.dark .text-muted{color:#dee4e7!important}
-        body.dark .small{color:var(--text)}
-        body.dark h2,body.dark h4,body.dark h5,body.dark h6,body.dark p,body.dark span,body.dark label,body.dark .value,body.dark .fw-bold{color:var(--text)}
-        body.dark .text-danger{color:#f87171!important}body.dark .text-success{color:#4ade80!important}body.dark .text-warning{color:#fcd34d!important}
-        body.dark .text-suggestion{color:var(--sug-text)!important}
-        body.dark .text-primary{color:#60a5fa!important}
-        body.dark a{color:#60a5fa}body.dark a:hover{color:#93c5fd}
-        body.dark .scroll-list, body.dark .icon-legend {background: #1e2128 !important;color: #f1f5f9 !important;border: 1px solid var(--border);}
-        body.dark .icon-legend span {color: #f1f5f9 !important;}
-        body.dark .prog-item {color: #f1f5f9;border-bottom-color: #2d3748;}
-        body.dark .about-links a{color:#b0bec5}body.dark .about-links a:hover{color:#60a5fa}
-        body.dark .bg-info-subtle{background:#162d4a;color:#7eb0e0}
-        body.dark .disc-badge{background:#5c2020;color:#fca5a5}
-        body.dark .bg-bad{background:var(--risk-bg);color:#fca5a5}
-        body.dark .form-select option{background:#1a1d23}
-        body.dark .hint-icon .hint-popup{background:#0c0e12}body.dark .hint-icon .hint-popup::after{border-top-color:#0c0e12}
-        body.dark .bad-sw-alert{background:#2d1215;border-color:#5c2020}
-        body.dark .prog-item{border-bottom-color:#2d3748}body.dark .vt-engine{border-bottom-color:#2d3748}
-        body.dark .size-breakdown-area {background: #1e2128 !important;color: var(--text);border: 1px solid var(--border);border-radius: 8px;padding: 10px;}
-        body.dark .size-breakdown-area .text-muted {color: #b0bec5 !important;}
-        body.dark .size-breakdown-container {background-color: #2d3748 !important;}
-        body.dark .size-bar{background:#2d3748}body.dark hr{border-color:#2d3748}
-        body.dark .d-flex.justify-content-between.mt-1.small {background-color: #1a1d23 !important;padding: 4px 8px;border-radius: 4px;}
-        body.dark .d-flex.justify-content-between.mt-1.small span {color: #f1f5f9 !important;display: flex;align-items: center;} 
-        .size-breakdown-inner {background: #f8fafc;}
-        body.dark .size-breakdown-inner {background: #1e2128;color: var(--text);}
-        body.dark .d-flex.justify-content-between.mt-1.small i {filter: brightness(1.5);margin-right: 5px;}
-        body.dark .lang-warning{background:#2d2510;border-color:#5c4d1a;color:#d4a54a}
-        body.dark .alert{background:#1e2128;color:var(--text);border-color:var(--border)}
-        body.dark .btn-outline-light{color:var(--muted);border-color:var(--border)}
-        body.dark .btn-close{filter:invert(1) grayscale(100%) brightness(200%)}
-        body.dark .wifi-detail-badge{background:#2d3748!important;color:#b0bec5!important}
-        body.dark .icon-legend span{color:#a0aab6}
-        body.dark .icon-legend .bi-person-fill{color:#8b8bff!important}body.dark .icon-legend .bi-windows{color:#5b9cf5!important}body.dark .icon-legend .bi-bag-fill{color:#498b73!important}
-        body.dark .src-user {background: #283593; color: #c5cae9;}
-        body.dark .src-windows {background: #1565c0;color: #bbdefb;}
-        body.dark .src-store {background: #00695c;color: #b2dfdb;}
-        body.dark .size-bar .seg-system { background: #1d4ed8; }
-        body.dark .size-bar .seg-user   { background: #6d28d9; }
-        body.dark .size-bar .seg-store  { background: #059669; }
-        body.dark .card{box-shadow:0 1px 3px rgba(0,0,0,.2),0 1px 2px rgba(0,0,0,.15)}
-        .theme-toggle{color:var(--sidebar-text);cursor:pointer;padding:8px 20px;font-size:.85rem;display:flex;align-items:center;gap:8px;border-radius:8px;margin:6px 12px 2px;transition:all .15s}
-        .theme-toggle:hover{background:rgba(255,255,255,.06);color:#fff}
-        .theme-toggle i{font-size:1rem}
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="sidebar">
-        <div class="brand"><i class="bi bi-shield-check"></i>SystemShield</div>
+    <div id="sidebar-backdrop" class="sidebar-backdrop" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="brand">
+            <img src="data/logo.png" class="brand-logo brand-logo-img" alt="SystemShield Logo">
+            <span class="brand-label">SystemShield</span>
+            <button class="sidebar-toggle-btn ms-auto" onclick="toggleSidebar()" title="Toggle menu" aria-label="Toggle navigation"><i class="bi bi-list"></i></button>
+        </div>
+        <div class="sidebar-icon-anchor"><img src="data/logo.png" class="sidebar-icon-logo" alt="SystemShield Logo"></div>
         <div class="nav flex-column" style="flex:1;">
-            <div id="nav-scan" class="nav-link active" onclick="showPage('scan')"><i class="bi bi-speedometer2"></i> Dashboard</div>
-            <div id="nav-programs" class="nav-link" onclick="showPage('programs')"><i class="bi bi-box"></i> Apps &amp; Programs</div>
-            <div id="nav-network" class="nav-link" onclick="showPage('network')"><i class="bi bi-wifi"></i> Network Security</div>
-            <div id="nav-virustotal" class="nav-link" onclick="showPage('virustotal')"><i class="bi bi-search"></i> VirusTotal</div>
-            <div id="nav-about" class="nav-link" onclick="showPage('about')"><i class="bi bi-info-circle"></i> About</div>
-            <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Dark mode"><i id="theme-icon" class="bi bi-moon-fill"></i></div>
+            <div id="nav-scan" class="nav-link active" onclick="showPage('scan')"><i class="bi bi-speedometer2"></i><span class="nav-text"> Dashboard</span></div>
+            <div id="nav-programs" class="nav-link" onclick="showPage('programs')"><i class="bi bi-box"></i><span class="nav-text"> Apps &amp; Programs</span></div>
+            <div id="nav-network" class="nav-link" onclick="showPage('network')"><i class="bi bi-wifi"></i><span class="nav-text"> Network Security</span></div>
+            <div id="nav-virustotal" class="nav-link" onclick="showPage('virustotal')"><i class="bi bi-search"></i><span class="nav-text"> VirusTotal</span></div>
+            <div id="nav-about" class="nav-link" onclick="showPage('about')"><i class="bi bi-info-circle"></i><span class="nav-text"> About</span></div>
+            <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Dark mode"><i id="theme-icon" class="bi bi-moon-fill"></i><span class="nav-text"> Theme</span></div>
         </div>
         <div class="lang-selector" id="lang-selector-area" style="display:none;"><i class="bi bi-globe2"></i><select id="lang-select" onchange="changeLanguage(this.value)" title="Language"></select></div>
         <div class="sidebar-bottom">
-            <button onclick="runScan()" class="btn btn-primary mb-2 w-100 btn-sm">Start New Scan</button>
-            <button onclick="showSummary()" class="btn btn-outline-light mb-1 w-100 btn-sm" style="font-size:.75rem;">Export / Summary</button>
+            <button onclick="runScan()" class="btn btn-primary mb-2 w-100 btn-sm sidebar-scan-btn" title="Start New Scan"><i class="bi bi-play-fill sidebar-btn-icon"></i><span class="sidebar-full-only"> Start New Scan</span></button>
+            <button onclick="showSummary()" class="btn btn-outline-light mb-1 w-100 btn-sm sidebar-export-btn" style="font-size:.75rem;" title="Export / Summary"><i class="bi bi-file-earmark-text sidebar-btn-icon"></i><span class="sidebar-full-only"> Export / Summary</span></button>
         </div>
     </div>
 
@@ -175,8 +41,8 @@
         <div id="page-scan" class="page-section active">
             <div class="header-row">
                 <div class="header-left">
-                    <h2 id="welcome-msg" class="fw-bold mb-0">Welcome,</h2>
-                    <p id="risk-msg" class="text-muted mt-1 mb-1">Ready to scan your system.</p>
+                    <h4 id="welcome-msg" class="fw-bold mb-0">Welcome,</h4>
+                    <p id="risk-msg" class="text-muted mt-0 mb-1" style="font-size:.85rem;">Ready to scan your system.</p>
                     <div id="hardware-header" class="hardware-info"></div>
                 </div>
                 <div id="risk-wheel-wrapper" class="risk-wheel-container" style="display:none;">
@@ -270,16 +136,14 @@
         <div id="page-about" class="page-section">
             <header class="mb-4"><h2 class="fw-bold">About</h2></header>
             <div class="card p-5 text-center">
-                <i class="bi bi-shield-lock text-primary mb-3" style="font-size:4rem;"></i>
-                <h4 class="fw-bold mb-1">WebGeeks SystemShield v1.1</h4>
-                <p class="text-muted small">SystemShield is free, open-source Windows security software designed to analyze and help protect your system.<br>Made with Python, PowerShell HTML/CSS & JavaScript.<br></p>
+                <h4 class="fw-bold mb-1">WebGeeks SystemShield v1.2.1</h4>
+                <p class="text-muted small">SystemShield is free, open-source Windows security software designed to analyze and help protect your system.<br>Made with Python, HTML/CSS & JavaScript.<br><br><img id="alogo" src="data\logo.png" height="auto" width="20%"></p>
                 <hr class="w-25 mx-auto my-4">
-                <p class="mb-1 fw-bold">Made by <a href="mailto:specvgundam@gmail.com" subject="WebGeeks SystemShield">James D.</a></p>
+                <p class="mb-1 fw-bold">Made by <a href="/cdn-cgi/l/email-protection#68010505090f1d060c090528071d1c04070703460b0705" subject="WebGeeks SystemShield">James D.</a></p>
                 <div class="about-links d-flex flex-column gap-2 mt-3">
                     <a href="https://webgeeks.org" target="_blank"><i class="bi bi-globe me-2" style="color:#2563eb;"></i>WebGeeks.org</a>
                     <a href="https://github.com/ImmaGundam" target="_blank"><i class="bi bi-github me-2"></i>GitHub</a>
                     <a href="https://ko-fi.com/immagundam" target="_blank"><i class="bi bi-cup-hot-fill me-2" style="color:#ff5f5f;"></i>Support on Ko-fi</a>
-                    <a href="https://paypal.me/immagundam" target="_blank"><i class="bi bi-paypal me-2" style="color:#003087;"></i>Donate via PayPal</a>
                 </div>
                 <button id="updateBtn" onclick="checkUpdate()" class="btn btn-sm btn-primary mt-4">Check for Updates</button>
             </div>
@@ -291,7 +155,7 @@
         <div class="summary-modal" id="summary-content"></div>
     </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 var riskChartInstance=null,lastScanData=null,programCache=[],programDataCache=null,networkData=null,systemLang={code:'',display:'',installed:[]};
 var PAGES=['scan','programs','network','virustotal','about'];
 
@@ -324,12 +188,28 @@ function makeInfoAlert(msg){return '<div class="info-alert"><i class="bi bi-info
 function hintQ(t){return '<span class="hint-icon"><i class="bi bi-question-circle-fill"></i><span class="hint-popup">'+esc(t)+'</span></span>'}
 function sv(o,k,fb){return(o&&o[k])?o[k]:(fb||'Unknown')}
 function sc(v,g,c1,c2){return v===g?(c1||'text-success'):(c2||'text-danger')}
+function hardwareIcon(icon,label,desc){var tip=desc||label;return '<span class="hardware-icon-tip" title="'+esc(tip)+'" aria-label="'+esc(tip)+'"><i class="bi '+icon+'"></i></span>'}
+function renderHardwareHeader(data){
+    var cpus=data.cpus&&data.cpus.length>0?data.cpus:[data.cpu||'Unknown'];
+    var gpuParts=[];
+    if(data.gpus&&data.gpus.length>0){
+        for(var gi=0;gi<data.gpus.length;gi++){
+            var gpu=data.gpus[gi]||{};
+            gpuParts.push(esc(gpu.name||'Unknown')+(gpu.resolution?' <small style="opacity:.65">('+esc(gpu.resolution)+')</small>':''));
+        }
+    } else gpuParts.push('Unknown');
+    return ''+
+      '<div class="hardware-row"><div class="hardware-row-label" title="CPU: Main processor that handles system instructions and calculations.">'+hardwareIcon('bi-cpu','CPU','CPU: Main processor that handles system instructions and calculations.')+'<span>CPU</span></div><div class="hardware-row-values">'+cpus.map(function(cpu){return '<div class="hardware-chip">'+esc(cpu)+'</div>'}).join('')+'</div></div>'+
+      '<div class="hardware-row"><div class="hardware-row-label" title="GPU: Graphics processor used for display output and visual workloads.">'+hardwareIcon('bi-gpu-card','GPU','GPU: Graphics processor used for display output and visual workloads.')+'<span>GPU</span></div><div class="hardware-row-values">'+gpuParts.map(function(g){return '<div class="hardware-chip">'+g+'</div>'}).join('')+'</div></div>'+
+      '<div class="hardware-row"><div class="hardware-row-label" title="Motherboard: Main board that connects the CPU, memory, storage, and other hardware.">'+hardwareIcon('bi-motherboard','Motherboard','Motherboard: Main board that connects the CPU, memory, storage, and other hardware.')+'<span>Mobo</span></div><div class="hardware-row-values"><div class="hardware-chip">'+esc(data.motherboard||'Unknown')+'</div></div></div>'+
+      '<div class="hardware-row"><div class="hardware-row-label" title="Memory: Installed system RAM used for active apps and multitasking.">'+hardwareIcon('bi-memory','Memory','Memory: Installed system RAM used for active apps and multitasking.')+'<span>Ram</span></div><div class="hardware-row-values"><div class="hardware-chip">'+esc(data.ram||'Unknown')+'</div></div></div>';
+}
 
 /* DASHBOARD */
 async function runScan(){
     showPage('scan');
-    var grid=document.getElementById('report-content');
-    grid.innerHTML='<div class="col-12 text-center mt-5"><div class="spinner-border text-primary"></div><p class="mt-2">Scanning system...</p><div style="margin:15px auto;max-width:400px;"><div class="progress" style="height:8px;"><div id="scan-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%;"></div></div><div id="scan-status" class="text-muted small mt-1">Initializing...</div></div></div>';
+    const grid = document.getElementById('report-content');
+    grid.innerHTML='<div class="col-12 text-center py-3"><div class="spinner-border spinner-border-sm text-primary mb-3"></div><div id="scan-status" class="text-muted small mb-2">Starting scan...</div><div class="progress mx-auto mb-1" style="height:8px;max-width:400px;"><div id="scan-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width:0%"></div></div></div>';
     document.getElementById('risk-wheel-wrapper').style.display='none';
     document.getElementById('remediation-box').innerHTML='';
     document.getElementById('risk-alerts-box').innerHTML='';
@@ -343,7 +223,7 @@ async function runScan(){
     else if(data.caution_factor>0)rt='<span class="text-suggestion fw-bold">'+data.caution_factor+' suggestion'+(data.caution_factor>1?'s':'')+'</span>';
     else rt='<span class="text-success fw-bold">no issues</span>';
     document.getElementById('risk-msg').innerHTML="Your system scan has found "+rt+".";
-    document.getElementById('hardware-header').innerHTML='<div class="hardware-item"><i class="bi bi-cpu"></i><span>'+esc(data.cpu||'Unknown')+'</span></div><div class="hardware-item"><i class="bi bi-motherboard"></i><span>'+esc(data.motherboard||'Unknown')+'</span></div><div class="hardware-item"><i class="bi bi-memory"></i><span>'+esc(data.ram||'Unknown')+'</span></div>';
+    document.getElementById('hardware-header').innerHTML=renderHardwareHeader(data);
 
     /* Risk alerts */
     var ra='';
@@ -361,14 +241,14 @@ async function runScan(){
     /* Remediation */
     var rem="";
     function ri(t,f){return '<li>'+t+' <button class="fix-btn fix-btn-outline" onclick="'+f+'">Fix</button></li>'}
-    if(data.user_security&&data.user_security.uac==="Disabled")rem+=ri("Enable UAC","void(0)");
-    if(data.drive_encryption==="Not Encrypted")rem+=ri("Enable BitLocker Drive Encryption","void(0)");
-    if(data.lock_security&&data.lock_security.password_set==="No")rem+=ri("Set a password for your user account","void(0)");
-    if(data.lock_security&&data.lock_security.lock_screen==="Disabled")rem+=ri("Enable screen lock timeout","void(0)");
-    if(data.auto_login==="Enabled")rem+=ri("Disable automatic login","void(0)");
-    if(data.guest_account==="Enabled")rem+=ri("Disable the Guest account","void(0)");
-    if(data.defender_realtime==="Disabled")rem+=ri("Enable Windows Defender Real-time Protection","void(0)");
-    if(data.fw_details&&!data.fw_details.windows_fw_enabled&&data.fw_details.third_party_count===0)rem+=ri("Enable Windows Firewall","void(0)");
+    if(data.user_security&&data.user_security.uac==="Disabled")rem+=ri("Enable UAC","eel.open_uac_settings()()");
+    if(data.drive_encryption==="Not Encrypted")rem+=ri("Enable BitLocker Drive Encryption","eel.open_ms_settings('encryption')()");
+    if(data.lock_security&&data.lock_security.password_set==="No")rem+=ri("Set a password for your user account","eel.open_ms_settings('signin')()");
+    if(data.lock_security&&data.lock_security.lock_screen==="Disabled")rem+=ri("Enable screen lock timeout","eel.open_ms_settings('lockscreen')()");
+    if(data.auto_login==="Enabled")rem+=ri("Disable automatic login","eel.open_netplwiz()()");
+    if(data.guest_account==="Enabled")rem+=ri("Disable the Guest account","eel.open_computer_management()()");
+    if(data.defender_realtime==="Disabled")rem+=ri("Enable Windows Defender Real-time Protection","eel.open_ms_settings('defender')()");
+    if(data.fw_details&&!data.fw_details.windows_fw_enabled&&data.fw_details.third_party_count===0)rem+=ri("Enable Windows Firewall","eel.open_ms_settings('firewall')()");
     if(data.remote_software&&data.remote_software.length>0)for(var rsi=0;rsi<data.remote_software.length;rsi++)rem+=ri("Uninstall "+esc(data.remote_software[rsi]),"uninstallSoftware('"+esc(data.remote_software[rsi])+"')");
     if(data.browsers)for(var j=0;j<data.browsers.length;j++){if(data.browsers[j].discontinued){if(data.browsers[j].name==='Internet Explorer'&&data.win_release==='11')continue;if(data.browsers[j].name==='Internet Explorer'&&data.win_release==='10')rem+=ri("Disable Internet Explorer in 'Turn Windows features on or off'","eel.open_windows_features()()");else rem+=ri("Uninstall "+esc(data.browsers[j].name),"void(0)")}}
     if(rem)document.getElementById('remediation-box').innerHTML='<div class="alert alert-danger py-2 px-3 mb-3" style="border-radius:8px;"><strong class="small"><i class="bi bi-exclamation-diamond me-1"></i>Recommended Actions:</strong><ul class="small mb-0 ps-3 mt-1">'+rem+'</ul></div>';
@@ -410,13 +290,18 @@ async function runScan(){
     var sleepH=(sv(data.lock_security,'sleep_timeout')==='Disabled'||!pwSet)?hintQ(!pwSet?'Set a password, then configure sleep in Settings \u2192 System \u2192 Power & Sleep.':'Configure sleep in Settings \u2192 System \u2192 Power & Sleep.'):'';
     var wuVal=data.windows_update||'Unknown';
     var wuH='<div class="security-item"><div class="label">Windows Update</div><div class="value clickable-result '+sc(wuVal,'Running','text-success','text-suggestion')+'" onclick="eel.open_windows_update()()" title="Click to open Windows Update">'+esc(wuVal)+'</div></div>';
+    var acctType=sv(data.user_security,'account_type','Unknown');
+    var acctClass=acctType.indexOf('Microsoft')>=0?'text-success':acctType.indexOf('Domain')>=0?'text-suggestion':'';
+    var winrecH='<div class="security-item"><div class="label">Recovery Env</div><div class="value '+sc(data.windows_recovery,'Enabled')+'">'+(data.windows_recovery||'Unknown')+'</div></div>';
 
     grid.innerHTML=
-    '<div class="col-12"><div class="card compact-card"><div class="section-title"><i class="bi bi-cpu icon-blue"></i>Operating System &amp; User Account</div><div class="security-row mb-2"><div class="security-item"><div class="label">OS</div><div class="value" style="font-size:.75rem;">'+esc(data.os_caption||data.os_name||'Unknown')+'</div></div><div class="security-item"><div class="label">Build</div><div class="value">'+esc(data.windows_build||'N/A')+'</div></div><div class="security-item"><div class="label">Secure Boot</div><div class="value '+sc(sbVal,'Enabled')+'">'+esc(sbVal)+sbH+'</div></div><div class="security-item"><div class="label">TPM</div><div class="value '+(tpmVal.indexOf('Present')>=0?'text-success':'text-danger')+'">'+esc(tpmVal)+tpmH+'</div></div><div class="security-item"><div class="label">Core Isolation</div><div class="value '+sc(sv(data.os_security,'vbs'),'Running')+'">'+sv(data.os_security,'vbs')+'</div></div></div>'+
-    '<div class="security-row mb-2"><div class="security-item"><div class="label">Admin User</div><div class="value '+sc(sv(data.user_security,'is_admin'),'No')+'">'+sv(data.user_security,'is_admin')+(sv(data.user_security,'is_admin')==='Yes'?hintQ('Running as admin is risky. Use a standard account.'):'')+'</div></div><div class="security-item"><div class="label">UAC</div><div class="value '+sc(sv(data.user_security,'uac'),'Enabled')+'">'+sv(data.user_security,'uac')+'</div></div><div class="security-item"><div class="label">Account Type</div><div class="value '+(sv(data.user_security,'account_type','').indexOf('Microsoft')>=0?'text-success':'text-suggestion')+'">'+sv(data.user_security,'account_type')+'</div></div><div class="security-item"><div class="label">Password Set</div><div class="value '+sc(sv(data.lock_security,'password_set'),'Yes')+'">'+sv(data.lock_security,'password_set')+(!pwSet?hintQ('Set a password via Settings \u2192 Accounts \u2192 Sign-in options'):'')+'</div></div><div class="security-item"><div class="label">Lock Screen</div><div class="value '+sc(sv(data.lock_security,'lock_screen'),'Enabled','text-success','text-suggestion')+'">'+sv(data.lock_security,'lock_screen')+lockH+'</div></div><div class="security-item"><div class="label">Sleep Timeout</div><div class="value '+sc(sv(data.lock_security,'sleep_timeout'),'Enabled','text-success','text-suggestion')+'">'+sv(data.lock_security,'sleep_timeout')+sleepH+'</div></div></div>'+
-    '<div class="small text-muted mb-1">Additional Security</div><div class="security-row"><div class="security-item"><div class="label">Guest Account</div><div class="value '+sc(data.guest_account,'Disabled')+'">'+esc(data.guest_account||'Unknown')+(data.guest_account==='Enabled'?hintQ('Disable Guest account via Computer Management.'):'')+'</div></div><div class="security-item"><div class="label">Auto Login</div><div class="value '+sc(data.auto_login,'Disabled')+'">'+esc(data.auto_login||'Unknown')+(data.auto_login==='Enabled'?hintQ('Disable: Win+R \u2192 netplwiz'):'')+'</div></div><div class="security-item"><div class="label">Remote Desktop</div><div class="value '+sc(data.remote_desktop,'Disabled','text-success','text-suggestion')+'">'+esc(data.remote_desktop||'Unknown')+'</div></div>'+wuH+'</div></div></div>'+
-    '<div class="col-md-6"><div class="card compact-card"><div class="section-title"><i class="bi bi-shield-shaded icon-blue"></i>Security Software</div><div class="small text-muted mb-1">Anti-Virus</div>'+avH+'<div class="small text-muted mt-2 mb-1">Firewall</div>'+fwH+'<div class="small text-muted mt-2 mb-1">Windows Defender</div><div class="d-flex justify-content-between align-items-center small py-1"><span>Real-time Protection</span><span class="status-badge '+(data.defender_realtime==='Enabled'?'bg-good':'bg-bad')+'">'+esc(data.defender_realtime||'Unknown')+'</span></div><div class="d-flex justify-content-between align-items-center small py-1"><span>Definition Version</span><span class="text-muted">'+esc(data.defender_version||'Unknown')+'</span></div><div class="small text-muted mt-2 mb-1">Drive Encryption</div>'+encH+'</div></div>'+
-    '<div class="col-md-6"><div class="card compact-card"><div class="section-title"><i class="bi bi-globe icon-blue"></i>Installed Browsers</div>'+bHtml+'<div class="small text-muted mt-3 mb-1">Password Managers</div>'+pmH+'<div class="small text-muted mt-2 mb-1">Remote Software</div>'+rsH+'</div></div>';
+    '<div class="col-12"><div class="card compact-card"><div class="section-title"><i class="bi bi-cpu icon-blue"></i>Operating System &amp; User Account</div><div class="security-row mb-2"><div class="security-item"><div class="label">OS</div><div class="value" style="font-size:.72rem;">'+esc(data.os_caption||data.os_name||'Unknown')+'</div></div><div class="security-item"><div class="label">Build</div><div class="value">'+esc(data.windows_build||'N/A')+'</div></div><div class="security-item"><div class="label">Secure Boot</div><div class="value '+sc(sbVal,'Enabled')+'">'+esc(sbVal)+sbH+'</div></div><div class="security-item"><div class="label">TPM</div><div class="value '+(tpmVal.indexOf('Present')>=0?'text-success':'text-danger')+'">'+esc(tpmVal)+tpmH+'</div></div><div class="security-item"><div class="label">Core Isolation</div><div class="value '+sc(sv(data.os_security,'vbs'),'Running')+'">'+sv(data.os_security,'vbs')+'</div></div></div>'+
+    '<div class="security-row mb-2"><div class="security-item"><div class="label">Admin User</div><div class="value '+sc(sv(data.user_security,'is_admin'),'No')+'">'+sv(data.user_security,'is_admin')+(sv(data.user_security,'is_admin')==='Yes'?hintQ('Running as admin is risky. Use a standard account.'):'')+'</div></div><div class="security-item"><div class="label">UAC</div><div class="value '+sc(sv(data.user_security,'uac'),'Enabled')+'">'+sv(data.user_security,'uac')+'</div></div><div class="security-item"><div class="label">Account Type</div><div class="value '+acctClass+'">'+acctType+'</div></div><div class="security-item"><div class="label">Password Set</div><div class="value '+sc(sv(data.lock_security,'password_set'),'Yes')+'">'+sv(data.lock_security,'password_set')+(!pwSet?hintQ('Set a password via Settings → Accounts → Sign-in options'):'')+'</div></div><div class="security-item"><div class="label">Lock Screen</div><div class="value '+sc(sv(data.lock_security,'lock_screen'),'Enabled','text-success','text-suggestion')+'">'+sv(data.lock_security,'lock_screen')+lockH+'</div></div><div class="security-item"><div class="label">Sleep Timeout</div><div class="value '+sc(sv(data.lock_security,'sleep_timeout'),'Enabled','text-success','text-suggestion')+'">'+sv(data.lock_security,'sleep_timeout')+sleepH+'</div></div></div>'+
+    '<div class="security-row"><div class="security-item"><div class="label">Guest Account</div><div class="value '+sc(data.guest_account,'Disabled')+'">'+esc(data.guest_account||'Unknown')+(data.guest_account==='Enabled'?hintQ('Disable Guest account via Computer Management.'):'')+'</div></div><div class="security-item"><div class="label">Auto Login</div><div class="value '+sc(data.auto_login,'Disabled')+'">'+esc(data.auto_login||'Unknown')+(data.auto_login==='Enabled'?hintQ('Disable: Win+R → netplwiz'):'')+'</div></div><div class="security-item"><div class="label">Remote Desktop</div><div class="value '+sc(data.remote_desktop,'Disabled','text-success','text-suggestion')+'">'+esc(data.remote_desktop||'Unknown')+'</div></div>'+wuH+winrecH+'</div></div></div>'+
+    '<div class="col-md-6 col-lg-6"><div class="card compact-card h-100"><div class="section-title"><i class="bi bi-shield-shaded icon-blue"></i>Security</div>'+
+    '<div class="soft-bubble"><div class="soft-bubble-title"><i class="bi bi-shield-check me-1"></i>Security Software</div><div class="soft-subtitle">Anti-Virus</div>'+avH+'<div class="soft-subtitle mt-2">Firewall</div>'+fwH+'<div class="soft-subtitle mt-2">Windows Defender</div><div class="d-flex justify-content-between align-items-center small py-1 soft-row"><span>Real-time Protection</span><span class="status-badge '+(data.defender_realtime==='Enabled'?'bg-good':'bg-bad')+'">'+esc(data.defender_realtime||'Unknown')+'</span></div><div class="d-flex justify-content-between align-items-center small py-1 soft-row"><span>Definition Version</span><span class="text-muted" style="font-size:.7rem;">'+esc(data.defender_version||'Unknown')+'</span></div><div class="soft-subtitle mt-2">Drive Encryption</div>'+encH+'</div></div></div>'+
+    '<div class="col-md-6 col-lg-6"><div class="card compact-card h-100"><div class="section-title"><i class="bi bi-grid-3x3-gap icon-blue"></i>Software</div>'+
+    '<div class="soft-bubble soft-bubble-alt"><div class="soft-bubble-title"><i class="bi bi-grid-3x3-gap me-1"></i>Software</div><div class="soft-subtitle">Browsers</div>'+bHtml+'<div class="soft-subtitle mt-2">Password Managers</div>'+pmH+'<div class="soft-subtitle mt-2">Remote Software</div>'+rsH+'</div></div></div>';
 }
 
 async function uninstallSoftware(n){if(!confirm('Launch uninstaller for "'+n+'"?'))return;var r=await eel.uninstall_program(n)();alert(r.status==='ok'?(r.message||'Uninstaller launched.'):'Error: '+(r.message||'Could not uninstall.'))}
@@ -586,11 +471,15 @@ function exportSummaryPDF(){var el=document.getElementById('pdf-export-container
 function copySummary(){var el=document.getElementById('pdf-export-container');navigator.clipboard.writeText(el.innerText).then(function(){var btn=event.target.closest('button');if(btn){var o=btn.innerHTML;btn.innerHTML='<i class="bi bi-check me-1"></i>Copied!';setTimeout(function(){btn.innerHTML=o},2000)}})}
 
 /* THEME */
-function toggleTheme(){var b=document.body;b.classList.toggle('dark');var d=b.classList.contains('dark');localStorage.setItem('ss-theme',d?'dark':'light');document.getElementById('theme-icon').className=d?'bi bi-sun-fill':'bi bi-moon-fill';document.querySelector('meta[name="theme-color"]').content=d?'#111318':'#252d3a';document.getElementById('theme-toggle').title=d?'Light mode':'Dark mode'}
-function initTheme(){if(localStorage.getItem('ss-theme')==='dark'){document.body.classList.add('dark');document.getElementById('theme-icon').className='bi bi-sun-fill';document.querySelector('meta[name="theme-color"]').content='#111318';document.getElementById('theme-toggle').title='Light mode'}}
+function toggleTheme(){var b=document.body;b.classList.toggle('dark');var d=b.classList.contains('dark');localStorage.setItem('ss-theme',d?'dark':'light');document.getElementById('theme-icon').className=d?'bi bi-sun-fill':'bi bi-moon-fill';document.querySelector('meta[name="theme-color"]').content=d?'#111318':'#212f4d';document.getElementById('theme-toggle').title=d?'Light mode':'Dark mode';try{eel.set_titlebar_theme(d)()}catch(e){}}
+function initTheme(){var d=localStorage.getItem('ss-theme')==='dark';if(d){document.body.classList.add('dark');document.getElementById('theme-icon').className='bi bi-sun-fill';document.querySelector('meta[name="theme-color"]').content='#111318';document.getElementById('theme-toggle').title='Light mode'}try{eel.set_titlebar_theme(d)()}catch(e){}}
+
+/* SIDEBAR TOGGLE */
+function toggleSidebar(){var sb=document.getElementById('sidebar'),bd=document.getElementById('sidebar-backdrop');if(window.innerWidth<=768){var open=sb.classList.toggle('mobile-open');bd.style.display=open?'block':'none'}else{var col=sb.classList.toggle('collapsed');localStorage.setItem('ss-sidebar',col?'collapsed':'expanded')}}
+function initSidebar(){if(window.innerWidth>768&&localStorage.getItem('ss-sidebar')==='collapsed')document.getElementById('sidebar').classList.add('collapsed')}
 
 /* INIT */
-initTheme();loadVTKey();initLanguage();
+initTheme();initSidebar();loadVTKey();initLanguage();
 </script>
 </body>
 </html>
