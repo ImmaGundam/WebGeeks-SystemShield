@@ -1,58 +1,98 @@
-# WebGeeks - SystemShield
-https://immagundam.github.io/WebGeeks-SystemShield/<br><br>
-SystemShield is a Windows home security auditing application designed to provide users with a clear and comprehensive overview of their computer’s health compared to a defined baseline. It detects for potentially unwanted programs, network sniffing/capture tools, known malicious applications as well as misconfigured or malicious network settings that lead to DNS hijacking.
-SystemShield is a standalone app made in Python (backend/logic) and HTML/CSS/JS (frontend/UI). 
-I made this program to be simple and helpful for non-tech saavy people. There is a compiled .exe that includes all that is needed in a small (<30mb) package.
-
-The tool scans your system and identifies:
-
-- Operating system version, build, and security settings/features
-- User account security, password protection, and lock screen settings
-- Drive encryption and hardware details (CPU, RAM, motherboard)
-- Windows Update and Defender status, including 3rd Party Antivirus and firewall statuses
-- Storage devices, space used by installed programs and Microsoft Store apps
-- Detects installed browsers for versions/out of date software. Assists staying up-to-date
-- Detects for installed Potentionally-unwanted-software (PUPS) in a large list of over 50+ known bad software (Will receive regular updates)
-- Detects for unwanted Remote access software and enabled remote desktop configurations
-- Reports all identified issues as risks or suggestions providing explanations on how to fix them, or guiding the user in system to setting to fix.
-- Scans network configuration and reports network adapters, and network configurations, showing private and public IP configs.
-- Detects for VPNs and displays connection status/DNS
-- Detects for hijacked/malicious DNS configurations and network scanning/dumping software.
-- Generates detailed scan results in a professional security audit–style report format (export to PDF)
-- VirusTotal Page: Upload files directly from your system for scan. Plug in your API key, upload files and pull file/hash results.
-
-## Dashboard<br>
-<i>All results are displayed in an interactive front-end powered by a browser interface.</i><br>
-![1](https://github.com/user-attachments/assets/1867f21a-8c26-484c-a888-1fbe0ebc22dd)
-
-## Apps & Programs
-<i>Will detect and report bad/vulnerable software</i><br>
-![2-1](https://github.com/user-attachments/assets/1a018ca5-78e1-4cb6-af5f-9880a3aa6f9e)
-
-## Network Security
-<img width="1027" height="307" alt="image" src="https://github.com/user-attachments/assets/4bebe7d0-87d3-4245-a0ec-b50ea7175622" />
+# WebGeeks - SystemShield  
+https://immagundam.github.io/WebGeeks-SystemShield/
 
 ---
 
-Currently the main audience is Windows. SystemShield should work on any system that can run python, but currently development is focused on finishing on Windows first.
+## Overview
 
-# How to Use:
-### Option 1: (exe)
+**SystemShield** is a lightweight Windows 10 & 11 security auditing application designed to provide a clear, comprehensive overview of your system’s security posture compared to a defined baseline.
 
-Windows users can download and run the .exe
-Compiled using pyinstaller with required dependencies, it's a standalone running executable.
-Note: If you plug in your VirusTotal API Key and copy the EXE, it will retain it. Please delete keys before sharing. 
+It identifies potential risks including:
+- Potentially Unwanted Programs (PUPs)
+- Network sniffing and capture tools
+- Known malicious or vulnerable software
+- Misconfigured or malicious network settings (such as DNS hijacking)
 
-### Option 2: (running in Python)
+SystemShield is built with a **Python backend** and a **HTML/CSS/JavaScript frontend**, delivered as a **portable standalone executable (<20MB)** — no installation required.
 
-You will need:
-- Windows 10 / 11
-- Python 3.x
+Designed with simplicity in mind, SystemShield makes security insights accessible to both technical and non-technical users.
 
-Also Required:<br>
-eel <br>
-psutil <br>
-wmi<br>
+---
 
-Run:<br>
-pip install eel psutil wmi<br>
+## Key Features
+
+### 🖥️ System & Security Analysis
+- Detects OS version, build, and enabled security features
+- Evaluates user account security (passwords, lock screen, timeout settings)
+- Identifies drive encryption status and hardware details (CPU, RAM, motherboard)
+- Checks Windows Update and Microsoft Defender status
+- Detects third-party antivirus and firewall configurations
+
+### 📦 Software & Storage Insights
+- Analyzes installed programs and Microsoft Store apps
+- Displays storage usage by application
+- Identifies outdated browsers and software versions
+
+### ⚠️ Threat Detection
+- Detects **50+ known PUPs and unwanted software**
+- Identifies remote access tools and exposed RDP configurations
+- Flags network sniffing/capture tools and suspicious utilities
+
+### 🌐 Network Security Analysis
+- Reports network adapters and configurations
+- Displays public and private IP details
+- Detects VPN usage and DNS configurations
+- Identifies potential **DNS hijacking or malicious configurations**
+
+### 📊 Reporting & Remediation
+- Categorizes findings as **Risks** or **Recommendations**
+- Provides explanations and guidance to resolve issues
+- Generates **professional audit-style reports (PDF export)**
+
+### 🔍 VirusTotal Integration
+- API key integration
+- Upload files directly for analysis
+- Retrieves hash-based scan results
+
+---
+
+## Dashboard
+*All results are displayed in an interactive browser-based UI.*
+
+![screen-01](https://github.com/user-attachments/assets/3e13a8d6-6432-4f6e-9745-34b7fa4ea6a3)
+
+*Works on both Windows 10 & 11*
+
+<img width="958" height="423" alt="1a0beb1e-0b16-49e7-815e-f726f1dfff3d" src="https://github.com/user-attachments/assets/2fa2e891-c249-4a96-b0b9-183e50e0aa59" />
+
+---
+
+* Detects exploitable & unwanted software *
+
+![screen-05](https://github.com/user-attachments/assets/23679e62-0034-4940-a137-93dba3b44dd4)
+
+<img width="899" height="81" alt="screen-08" src="https://github.com/user-attachments/assets/53a1ff0f-69c7-408a-91ba-4905ec4a1a40" />
+
+---
+
+# How to Use
+
+## Option 1: Standalone Executable (.exe)
+- Download and run the compiled executable
+- Built using PyInstaller with all dependencies included
+- No installation required
+
+⚠️ **Note:** If a VirusTotal API key is entered, it will persist in the executable directory. Remove keys before sharing.
+
+---
+
+## Option 2: Run from Source (Python)
+
+### Requirements:
+- Windows 10 / 11  
+- Python 3.x  
+
+### Dependencies:
+- eel
+- psutil
+- wmi
