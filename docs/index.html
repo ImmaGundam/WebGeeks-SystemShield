@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebGeeks SystemShield</title>
+  <meta name="description" content="SystemShield is a lightweight Windows security auditing application that identifies risks, insecure software, network issues, and misconfigurations with clear remediation guidance." />
+  <style>
+    :root {
+      --bg: #060b16;
+      --bg-2: #0b1324;
+      --panel: rgba(16, 24, 42, 0.92);
+      --panel-2: rgba(13, 21, 37, 0.82);
+      --line: rgba(92, 126, 193, 0.22);
+      --text: #edf3ff;
+      --muted: #9fb0d1;
+      --blue: #2b79ff;
+      --blue-soft: rgba(43, 121, 255, 0.16);
+      --green: #29d17d;
+      --amber: #ffbe3d;
+      --red: #ff5e73;
+      --shadow: 0 20px 56px rgba(0, 0, 0, 0.42);
+      --radius: 20px;
+      --max: 1100px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(43, 121, 255, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(41, 209, 125, 0.08), transparent 20%),
+        linear-gradient(180deg, #07101e 0%, #050912 100%);
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    .shell {
+      width: min(var(--max), calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    /* ── NAV ── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(16px);
+      background: rgba(5, 10, 18, 0.72);
+      border-bottom: 1px solid rgba(128, 151, 199, 0.12);
+    }
+
+    .topbar-inner {
+      width: min(var(--max), calc(100% - 32px));
+      margin: 0 auto;
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .brand-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .brand-badge img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .nav a:hover { color: var(--text); }
+
+    .cta-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: 1px solid transparent;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary {
+      background: linear-gradient(180deg, #2f82ff, #1e65dd);
+      box-shadow: 0 12px 28px rgba(27, 95, 214, 0.26);
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.03);
+      border-color: rgba(135, 156, 199, 0.24);
+      color: var(--text);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 56px 0 28px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.08fr .92fr;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 11px;
+      border-radius: 999px;
+      background: rgba(43, 121, 255, 0.1);
+      border: 1px solid rgba(90, 133, 219, 0.2);
+      color: #c9dbff;
+      font-size: 0.84rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+      line-height: .96;
+      letter-spacing: -0.045em;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.7;
+      max-width: 62ch;
+      margin: 14px 0 22px;
+    }
+
+    .stat-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .stat-card, .panel {
+      background: linear-gradient(180deg, rgba(14, 22, 38, 0.94), rgba(10, 17, 30, 0.84));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-card {
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .hero-visual {
+      position: relative;
+      padding: 14px;
+      background: linear-gradient(180deg, rgba(9, 15, 27, 0.88), rgba(7, 12, 22, 0.98));
+      border: 1px solid rgba(95, 124, 197, 0.24);
+      border-radius: 24px;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+    }
+
+    .hero-visual::before {
+      content: "";
+      position: absolute;
+      inset: -20% auto auto -10%;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(43, 121, 255, 0.18), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-visual img {
+      border-radius: 14px;
+      border: 1px solid rgba(137, 161, 214, 0.12);
+    }
+
+    .floating-note {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      padding: 10px 12px;
+      max-width: 220px;
+      border-radius: 14px;
+      background: rgba(6, 11, 21, 0.88);
+      border: 1px solid rgba(114, 139, 196, 0.24);
+      font-size: 0.84rem;
+      color: #d8e4ff;
+      backdrop-filter: blur(12px);
+    }
+
+    /* ── SECTIONS ── */
+    section {
+      padding: 28px 0;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: clamp(1.45rem, 3vw, 2.1rem);
+      letter-spacing: -0.035em;
+    }
+
+    .section-heading p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      max-width: 64ch;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    /* ── FEATURES ── */
+    .features-header {
+      margin-bottom: 18px;
+    }
+
+    .features-header h2 {
+      margin: 0 0 6px;
+      font-size: clamp(1.45rem, 3vw, 2.1rem);
+      letter-spacing: -0.035em;
+    }
+
+    .features-header p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+      max-width: 80ch;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .feature-card {
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -10% -35% auto;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, rgba(43, 121, 255, 0.10), transparent 72%);
+      pointer-events: none;
+    }
+
+    .feature-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      background: rgba(43, 121, 255, 0.11);
+      border: 1px solid rgba(100, 136, 220, .22);
+      margin-bottom: 12px;
+      font-size: 1.05rem;
+    }
+
+    .feature-card h3 {
+      margin: 0 0 8px;
+      font-size: 0.98rem;
+    }
+
+    .feature-card ul {
+      margin: 0;
+      padding-left: 16px;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 0.9rem;
+    }
+
+    /* ── SPLIT ── */
+    .split-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .panel {
+      padding: 20px;
+    }
+
+    .check-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .check-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.93rem;
+    }
+
+    .check-list b { color: var(--text); }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(136, 160, 204, .18);
+      font-size: .84rem;
+      color: #d9e4fb;
+      margin: 5px 5px 0 0;
+    }
+
+    /* ── CAROUSEL ── */
+    .carousel-wrap {
+      position: relative;
+    }
+
+    .carousel {
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid rgba(95, 124, 197, 0.22);
+      box-shadow: var(--shadow);
+      background: rgba(10, 16, 28, 0.9);
+      cursor: zoom-in;
+    }
+
+    .carousel-track {
+      display: flex;
+      transition: transform .38s cubic-bezier(.4,0,.2,1);
+    }
+
+    .carousel-slide {
+      flex: 0 0 100%;
+      position: relative;
+    }
+
+    .carousel-slide img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+      background: rgba(6, 10, 18, 0.95);
+    }
+
+    .carousel-caption {
+      position: absolute;
+      inset: auto 0 0 0;
+      padding: 14px 18px;
+      background: linear-gradient(180deg, transparent, rgba(4, 8, 14, 0.88));
+      color: #eef4ff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: -.02em;
+    }
+
+    .carousel-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid rgba(137, 160, 214, 0.28);
+      background: rgba(7, 12, 22, 0.82);
+      color: #fff;
+      font-size: 1.1rem;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: background .15s, transform .15s;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .carousel-btn:hover {
+      background: rgba(43, 121, 255, 0.32);
+      transform: translateY(-50%) scale(1.08);
+    }
+
+    .carousel-btn.prev { left: 10px; }
+    .carousel-btn.next { right: 10px; }
+
+    .carousel-dots {
+      display: flex;
+      justify-content: center;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .carousel-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(160, 180, 220, 0.28);
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      transition: background .2s, width .2s;
+    }
+
+    .carousel-dot.active {
+      background: var(--blue);
+      width: 20px;
+    }
+
+    /* ── STEPS ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .step {
+      padding: 18px;
+    }
+
+    .step-num {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(43, 121, 255, 0.12);
+      border: 1px solid rgba(96, 136, 224, 0.24);
+      margin-bottom: 12px;
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+
+    .step h3 { margin: 0 0 6px; font-size: 1rem; }
+
+    .step p, .step ul {
+      color: var(--muted);
+      line-height: 1.65;
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    /* ── TECH STACK ── */
+    .tech-stack {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .tech-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(136,160,204,0.14);
+      transition: background .18s, border-color .18s, transform .18s;
+      flex: 1;
+      min-width: 72px;
+    }
+
+    .tech-item:hover {
+      background: rgba(43,121,255,0.08);
+      border-color: rgba(90,133,219,0.28);
+      transform: translateY(-2px);
+    }
+
+    .tech-item img {
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+    }
+
+    .tech-item span {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      padding: 26px 0 48px;
+      color: var(--muted);
+    }
+
+    .footer-card {
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer small { display: block; line-height: 1.7; font-size: 0.84rem; }
+
+    /* ── MODAL ── */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 5, 10, 0.84);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-card {
+      width: min(1200px, 100%);
+      max-height: 92vh;
+      background: rgba(7, 12, 22, 0.96);
+      border: 1px solid rgba(105, 132, 190, 0.24);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
+    }
+
+    .modal-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(137, 160, 214, .15);
+    }
+
+    .modal-body {
+      padding: 16px;
+      max-height: calc(92vh - 60px);
+      overflow: auto;
+    }
+
+    .modal-body img {
+      width: 100%;
+      height: auto;
+      border-radius: 14px;
+    }
+
+    .modal-close {
+      cursor: pointer;
+      border: 0;
+      background: rgba(255,255,255,0.06);
+      color: white;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 1040px) {
+      .hero-grid,
+      .split-grid,
+      .feature-grid,
+      .steps {
+        grid-template-columns: 1fr;
+      }
+      .stat-strip {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .section-heading { align-items: start; flex-direction: column; }
+      .hero-grid { text-align: center; }
+      .hero-grid .eyebrow,
+      .hero-grid .cta-row { justify-content: center; }
+      .hero-grid p { margin-left: auto; margin-right: auto; }
+      .hero-visual { max-width: 560px; margin: 0 auto; }
+      .feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 680px;
+        margin: 0 auto;
+      }
+    }
+
+    /* ── HAMBURGER ── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(135,156,199,0.22);
+      border-radius: 10px;
+      cursor: pointer;
+      padding: 7px 8px;
+      flex-shrink: 0;
+    }
+
+    .hamburger span {
+      display: block;
+      height: 2px;
+      background: var(--text);
+      border-radius: 2px;
+      transition: transform .22s, opacity .22s;
+    }
+
+    .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      background: rgba(7, 12, 24, 0.97);
+      border-bottom: 1px solid rgba(95, 124, 197, 0.18);
+      backdrop-filter: blur(16px);
+    }
+
+    .mobile-menu.open { display: flex; }
+
+    .mobile-menu a {
+      padding: 14px 20px;
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(95, 124, 197, 0.1);
+      transition: color .15s, background .15s;
+    }
+
+    .mobile-menu a:last-child { border-bottom: none; }
+    .mobile-menu a:hover { color: var(--text); background: rgba(43,121,255,0.06); }
+
+    @media (max-width: 760px) {
+      .nav { display: none; }
+      .hamburger { display: flex; }
+      .brand-badge { width: 40px; height: 40px; }
+      .hero { padding-top: 36px; }
+      h1 { font-size: clamp(2rem, 10vw, 3rem); }
+      .hero .cta-row .btn { width: 100%; justify-content: center; }
+      .stat-strip { grid-template-columns: repeat(2, 1fr); }
+      .footer-card { flex-direction: column; align-items: flex-start; }
+      .footer-card .cta-row { width: 100%; }
+      .footer-card .cta-row .btn { flex: 1; }
+    }
+
+    @media (max-width: 480px) {
+      .stat-strip { grid-template-columns: 1fr 1fr; }
+      .feature-grid { grid-template-columns: 1fr; max-width: 420px; }
+      .steps { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#top">
+        <div class="brand-badge"><img src="assets/icon.png" alt="SystemShield icon" /></div>
+        <span>WebGeeks <span style="color:#8db6ff;">SystemShield</span></span>
+      </a>
+      <nav class="nav">
+        <a href="#features">Features</a>
+        <a href="#screenshots">Screenshots</a>
+        <a href="#reports">Reports</a>
+        <a href="#download">Download</a>
+      </nav>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <a class="btn btn-secondary" href="https://github.com/ImmaGundam/WebGeeks-SystemShield" target="_blank" rel="noreferrer">GitHub</a>
+        <button class="hamburger" id="hamburger" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <nav class="mobile-menu" id="mobileMenu">
+      <a href="#features" onclick="closeMobileMenu()">Features</a>
+      <a href="#screenshots" onclick="closeMobileMenu()">Screenshots</a>
+      <a href="#reports" onclick="closeMobileMenu()">Reports</a>
+      <a href="#download" onclick="closeMobileMenu()">Download</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="shell hero-grid">
+        <div>
+          <div class="eyebrow">Windows security auditing for real home systems</div>
+          <h1>Find risky software, insecure settings, and network problems in one scan.</h1>
+          <p>
+            SystemShield is a lightweight Windows security auditing application built to give everyday users a clear view of their system health. It checks security settings, user account protections, encryption, browsers, unwanted software, remote access tools, network configuration, DNS issues, and more — then turns those findings into actionable guidance and exportable reports.
+          </p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="https://github.com/ImmaGundam/WebGeeks-SystemShield/releases" target="_blank" rel="noreferrer">Download for Windows</a>
+            <a class="btn btn-secondary" href="#screenshots">See screenshots</a>
+          </div>
+          <div class="stat-strip">
+            <div class="stat-card">
+              <div class="stat-num">&lt;20MB</div>
+              <div class="stat-label">Portable standalone executable for Windows with no heavy install process.</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">50+</div>
+              <div class="stat-label">Known PUPs, unwanted tools, and suspicious software signatures checked.</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">PDF</div>
+              <div class="stat-label">Professional audit-style summary export for reporting and remediation.</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">VT</div>
+              <div class="stat-label">VirusTotal hash and file lookups using your own API key.</div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual panel">
+          <img src="assets/screen-01.jpg" alt="SystemShield dashboard screenshot" />
+          <div class="floating-note">
+            Highlights system risks, suggestions, hardware details, encryption status, Defender status, browser versions, and remote software findings from a single dashboard.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="shell">
+        <div class="features-header">
+          <h2>What SystemShield checks</h2>
+          <p>Simple enough for everyday users, thorough enough for a real security review. Every finding is labeled as a risk or a suggestion, with clear guidance on what to do next.</p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card panel">
+            <div class="feature-icon">🖥️</div>
+            <h3>Operating system & user security</h3>
+            <ul>
+              <li>Windows version, build, and baseline security posture</li>
+              <li>Secure Boot, TPM, Core Isolation, Recovery Environment</li>
+              <li>Password status, lock screen, sleep timeout, auto-login</li>
+              <li>Guest account, account type, admin/UAC checks</li>
+            </ul>
+          </article>
+
+          <article class="feature-card panel">
+            <div class="feature-icon">🛡️</div>
+            <h3>Protection status</h3>
+            <ul>
+              <li>Windows Defender and Windows Update status</li>
+              <li>Third-party antivirus and firewall visibility</li>
+              <li>Drive encryption reporting with BitLocker details</li>
+              <li>Remote Desktop and exposure-related settings</li>
+            </ul>
+          </article>
+
+          <article class="feature-card panel">
+            <div class="feature-icon">📦</div>
+            <h3>Apps, browsers & risky software</h3>
+            <ul>
+              <li>Installed programs, Microsoft Store apps, and size usage</li>
+              <li>Outdated browsers and vulnerable software versions</li>
+              <li>Potentially Unwanted Programs and remote access tools</li>
+              <li>Quick actions for uninstall or remediation guidance</li>
+            </ul>
+          </article>
+
+          <article class="feature-card panel">
+            <div class="feature-icon">🌐</div>
+            <h3>Network security analysis</h3>
+            <ul>
+              <li>Network adapters, interface details, public/private IPs</li>
+              <li>Wi-Fi encryption, channel, radio, and signal data</li>
+              <li>VPN presence, connection state, and DNS reporting</li>
+              <li>Detection for DNS hijacking indicators and capture tools</li>
+            </ul>
+          </article>
+
+          <article class="feature-card panel">
+            <div class="feature-icon">📄</div>
+            <h3>Reports & summaries</h3>
+            <ul>
+              <li>Professional security audit-style report views</li>
+              <li>Issue counts split into risks and suggestions</li>
+              <li>Readable summary for users and support workflows</li>
+              <li>Export-friendly presentation for follow-up action</li>
+            </ul>
+          </article>
+
+          <article class="feature-card panel">
+            <div class="feature-icon">🔎</div>
+            <h3>VirusTotal integration</h3>
+            <ul>
+              <li>Hash lookups for already-known files</li>
+              <li>Direct file submissions using your own API key</li>
+              <li>Multi-engine detection results surfaced in-app</li>
+              <li>Useful for triaging suspicious executables or installers</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell split-grid">
+        <article class="panel">
+          <div class="section-heading" style="margin-bottom:12px;">
+            <div>
+              <h2 style="font-size:1.45rem;">Why it stands out</h2>
+            </div>
+          </div>
+          <ul class="check-list">
+            <li><span>✓</span><span><b>Portable and lightweight.</b> Built as a standalone executable so home users can run it quickly without a complex setup.</span></li>
+            <li><span>✓</span><span><b>Broad visibility.</b> Combines operating system checks, software review, browser versioning, network inspection, and reporting in one interface.</span></li>
+            <li><span>✓</span><span><b>Action-oriented findings.</b> Instead of dumping raw data, SystemShield labels issues clearly and points users toward next steps.</span></li>
+            <li><span>✓</span><span><b>Useful for support and cleanup.</b> Great for self-checks, helping family devices, or building a professional-looking audit summary.</span></li>
+          </ul>
+        </article>
+
+        <article class="panel" id="about">
+          <div class="section-heading" style="margin-bottom:14px;">
+            <div>
+              <h2 style="font-size:1.45rem;">Built with</h2>
+            </div>
+          </div>
+          <p style="color:var(--muted);font-size:0.9rem;line-height:1.6;margin:0 0 18px;">SystemShield is a desktop application powered by Python on the backend for all system scanning and data collection, with a lightweight HTML, CSS, and JavaScript frontend rendered through a built-in webview.</p>
+          <div class="tech-stack">
+            <div class="tech-item">
+              <img src="assets/python.svg" alt="Python" />
+              <span>Python</span>
+            </div>
+            <div class="tech-item">
+              <img src="assets/html.svg" alt="HTML" />
+              <span>HTML</span>
+            </div>
+            <div class="tech-item">
+              <img src="assets/css.svg" alt="CSS" />
+              <span>CSS</span>
+            </div>
+            <div class="tech-item">
+              <img src="assets/javascript.svg" alt="JavaScript" />
+              <span>JavaScript</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ── SCREENSHOTS CAROUSEL ── -->
+    <section id="screenshots">
+      <div class="shell">
+        <div class="section-heading">
+          <div>
+            <h2>Screenshots</h2>
+            <p>A look at the latest UI — browse the dashboard, apps &amp; programs view, network security analysis, remediation prompts, VirusTotal integration, and the summary report. Click any slide to expand.</p>
+          </div>
+        </div>
+
+        <div class="carousel-wrap">
+          <div class="carousel" id="carousel">
+            <div class="carousel-track" id="carouselTrack">
+              <div class="carousel-slide" data-full="assets/screen-01.jpg" data-title="Main dashboard">
+                <img src="assets/screen-01.jpg" alt="SystemShield dark dashboard" />
+                <div class="carousel-caption">Main dashboard with risk summary</div>
+              </div>
+              <div class="carousel-slide" data-full="assets/screen-03.jpg" data-title="Apps & Programs">
+                <img src="assets/screen-03.jpg" alt="Apps and programs page" />
+                <div class="carousel-caption">Apps &amp; Programs view with storage breakdown</div>
+              </div>
+              <div class="carousel-slide" data-full="assets/screen-04.jpg" data-title="Network Security">
+                <img src="assets/screen-04.jpg" alt="Network security page" />
+                <div class="carousel-caption">Network security analysis and Wi‑Fi details</div>
+              </div>
+              <div class="carousel-slide" data-full="assets/screen-05.jpg" data-title="PUP Detection">
+                <img src="assets/screen-05.jpg" alt="PUP detection alert" />
+                <div class="carousel-caption">Potentially unwanted software detection</div>
+              </div>
+              <div class="carousel-slide" data-full="assets/screen-06.jpg" data-title="Remediation Prompt">
+                <img src="assets/screen-06.jpg" alt="Uninstall prompt from SystemShield" />
+                <div class="carousel-caption">Direct remediation and uninstall prompt</div>
+              </div>
+              <div class="carousel-slide" data-full="assets/screen-07.jpg" data-title="VirusTotal integration">
+                <img src="assets/screen-07.jpg" alt="VirusTotal page" />
+                <div class="carousel-caption">VirusTotal integration for hash and file checks</div>
+              </div>
+              <div class="carousel-slide" data-full="assets/screen-08.jpg" data-title="Security Report">
+                <img src="assets/screen-08.jpg" alt="SystemShield report modal" />
+                <div class="carousel-caption">Security summary and report view</div>
+              </div>
+            </div>
+            <button class="carousel-btn prev" id="prevBtn" aria-label="Previous">&#8249;</button>
+            <button class="carousel-btn next" id="nextBtn" aria-label="Next">&#8250;</button>
+          </div>
+          <div class="carousel-dots" id="carouselDots"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shell">
+        <div class="section-heading">
+          <div>
+            <h2>How to use it</h2>
+            <p>SystemShield supports both portable Windows use and source-based runs for development.</p>
+          </div>
+        </div>
+        <div class="steps">
+          <article class="step panel">
+            <div class="step-num">1</div>
+            <h3>Download the executable</h3>
+            <p>Grab the packaged Windows release from GitHub and run it directly. It is designed to stay lightweight and easy to distribute.</p>
+          </article>
+          <article class="step panel">
+            <div class="step-num">2</div>
+            <h3>Run a scan</h3>
+            <p>Start a new scan to review security status, apps, remote tools, browser versions, and network settings in one pass.</p>
+          </article>
+          <article class="step panel" id="download">
+            <div class="step-num">3</div>
+            <h3>Review and export</h3>
+            <p>Use the dashboard, remediation prompts, report modal, and PDF/summary export to fix issues or document the current state of the system.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell">
+      <div class="footer-card panel">
+        <div>
+          <strong style="display:block; margin-bottom:6px;">WebGeeks SystemShield</strong>
+          <small>Windows security auditing application built with Python for backend logic and HTML/CSS/JS for the interface.</small>
+          <small>Designed to be approachable for non-technical users while still producing a professional security summary.</small>
+        </div>
+        <div class="cta-row">
+          <a class="btn btn-secondary" href="https://www.webgeeks.org" target="_blank" rel="noreferrer">WebGeeks</a>
+          <a class="btn btn-secondary" href="https://github.com/ImmaGundam/WebGeeks-SystemShield" target="_blank" rel="noreferrer">Repository</a>
+          <a class="btn btn-primary" href="https://github.com/ImmaGundam/WebGeeks-SystemShield/releases" target="_blank" rel="noreferrer">Download</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal for expanded view -->
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-top">
+        <strong id="modalTitle">Screenshot</strong>
+        <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <img id="modalImg" src="" alt="Expanded screenshot" />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ── HAMBURGER ── */
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('open');
+      mobileMenu.classList.toggle('open');
+    });
+
+    function closeMobileMenu() {
+      hamburger.classList.remove('open');
+      mobileMenu.classList.remove('open');
+    }
+
+    /* ── MODAL ── */
+    const modal = document.getElementById('modal');
+    const modalImg = document.getElementById('modalImg');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalClose = document.getElementById('modalClose');
+
+    function openModal(src, title) {
+      modalImg.src = src;
+      modalTitle.textContent = title || 'Screenshot';
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeModal() {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+
+    modalClose.addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+    window.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    /* ── CAROUSEL ── */
+    const track = document.getElementById('carouselTrack');
+    const slides = Array.from(track.children);
+    const dotsWrap = document.getElementById('carouselDots');
+    let current = 0;
+
+    // Build dots
+    slides.forEach((_, i) => {
+      const d = document.createElement('button');
+      d.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+      d.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+      d.addEventListener('click', () => goTo(i));
+      dotsWrap.appendChild(d);
+    });
+
+    function goTo(n) {
+      current = (n + slides.length) % slides.length;
+      track.style.transform = `translateX(-${current * 100}%)`;
+      dotsWrap.querySelectorAll('.carousel-dot').forEach((d, i) => {
+        d.classList.toggle('active', i === current);
+      });
+    }
+
+    document.getElementById('prevBtn').addEventListener('click', () => goTo(current - 1));
+    document.getElementById('nextBtn').addEventListener('click', () => goTo(current + 1));
+
+    // Swipe support
+    let startX = 0;
+    const carousel = document.getElementById('carousel');
+    carousel.addEventListener('pointerdown', e => { startX = e.clientX; });
+    carousel.addEventListener('pointerup', e => {
+      const diff = startX - e.clientX;
+      if (Math.abs(diff) > 40) goTo(diff > 0 ? current + 1 : current - 1);
+    });
+
+    // Click to expand
+    slides.forEach(slide => {
+      slide.addEventListener('click', () => {
+        openModal(slide.dataset.full, slide.dataset.title);
+      });
+    });
+
+    // Keyboard navigation
+    window.addEventListener('keydown', e => {
+      if (modal.classList.contains('open')) return;
+      if (e.key === 'ArrowLeft') goTo(current - 1);
+      if (e.key === 'ArrowRight') goTo(current + 1);
+    });
+
+    // Auto-advance
+    let autoTimer = setInterval(() => goTo(current + 1), 5000);
+    carousel.addEventListener('pointerdown', () => clearInterval(autoTimer));
+    carousel.addEventListener('pointerup', () => {
+      clearInterval(autoTimer);
+      autoTimer = setInterval(() => goTo(current + 1), 5000);
+    });
+  </script>
+</body>
+</html>
