@@ -15,8 +15,6 @@
 <p align="center">
   <a href="https://systemshield.net">Website</a>
   ·
-  <a href="https://immagundam.github.io/WebGeeks-SystemShield/">Project Page</a>
-  ·
   <a href="https://github.com/ImmaGundam/WebGeeks-SystemShield/releases">Releases</a>
 </p>
 
