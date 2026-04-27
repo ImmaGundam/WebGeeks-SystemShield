@@ -1,98 +1,213 @@
-# WebGeeks - SystemShield  
-https://immagundam.github.io/WebGeeks-SystemShield/
+<h1 align="center"> WebGeeks SystemShield </h1>
+
+<p align="center">
+  <img
+    src="https://github.com/user-attachments/assets/d70e0ca3-8675-48e8-a33d-3d45f5d99dab"
+    alt="WebGeeks SystemShield icon"
+    width="150"
+  />
+</p>
+
+<p align="center">
+  <strong>A lightweight home system security auditing tool for Windows 10/11.</strong>
+</p>
+
+<p align="center">
+  <a href="https://systemshield.net">Website</a>
+  ·
+  <a href="https://immagundam.github.io/WebGeeks-SystemShield/">Project Page</a>
+  ·
+  <a href="https://github.com/ImmaGundam/WebGeeks-SystemShield/releases">Releases</a>
+</p>
 
 ---
 
 ## Overview
 
-**SystemShield** is a lightweight Windows 10 & 11 security auditing application designed to provide a clear, comprehensive overview of your system’s security posture compared to a defined baseline.
+**WebGeeks SystemShield** is a lightweight security and system auditing
+application designed to help users understand what may be putting their
+computer at risk.
 
-It identifies potential risks including:
-- Potentially Unwanted Programs (PUPs)
-- Network sniffing and capture tools
-- Known malicious or vulnerable software
-- Misconfigured or malicious network settings (such as DNS hijacking)
+SystemShield reviews system settings, installed software, browser versions,
+network configuration, and security features, then presents the results in a
+clear browser-based dashboard.
 
-SystemShield is built with a **Python backend** and a **HTML/CSS/JavaScript frontend**, delivered as a **portable standalone executable (<20MB)** — no installation required.
+It is designed to help identify:
 
-Designed with simplicity in mind, SystemShield makes security insights accessible to both technical and non-technical users.
+- Potentially unwanted programs, also known as PUPs
+- Network sniffing and packet capture tools
+- Remote access tools and exposed remote access settings
+- Misconfigured firewall, DNS, or network settings
+- Outdated browsers and vulnerable software indicators
+- Disabled or weakened system security features
+
+SystemShield is not an antivirus, malware remover, or endpoint protection
+platform. It is a reporting and auditing tool that helps users review system
+health, security posture, and configuration risks. SystemShield includes a 
+heuristic detection list focused on identifying common security and 
+configuration risks, including legitimate applications with known 
+vulnerabilities, potentially unwanted programs, capture & network software, 
+browser toolbars, junkware, and suspicious utilities.
 
 ---
 
 ## Key Features
 
-### 🖥️ System & Security Analysis
-- Detects OS version, build, and enabled security features
-- Evaluates user account security (passwords, lock screen, timeout settings)
-- Identifies drive encryption status and hardware details (CPU, RAM, motherboard)
-- Checks Windows Update and Microsoft Defender status
-- Detects third-party antivirus and firewall configurations
+### System Security Review
 
-### 📦 Software & Storage Insights
-- Analyzes installed programs and Microsoft Store apps
-- Displays storage usage by application
-- Identifies outdated browsers and software versions
+- Detects Windows version, build, and system configuration
+- Reviews Microsoft Defender status
+- Checks firewall profile configuration
+- Reports Windows Update status
+- Reviews Secure Boot, TPM, BitLocker, and related system protections
+- Evaluates user account and lock screen security indicators
 
-### ⚠️ Threat Detection
-- Detects **50+ known PUPs and unwanted software**
-- Identifies remote access tools and exposed RDP configurations
-- Flags network sniffing/capture tools and suspicious utilities
+### Software & Browser Analysis
 
-### 🌐 Network Security Analysis
-- Reports network adapters and configurations
-- Displays public and private IP details
-- Detects VPN usage and DNS configurations
-- Identifies potential **DNS hijacking or malicious configurations**
+- Lists installed desktop programs
+- Reviews Microsoft Store apps
+- Detects known unwanted or risky software
+- Checks installed browser versions
+- Flags outdated or suspicious software indicators
 
-### 📊 Reporting & Remediation
-- Categorizes findings as **Risks** or **Recommendations**
-- Provides explanations and guidance to resolve issues
-- Generates **professional audit-style reports (PDF export)**
+### Network Configuration Review
 
-### 🔍 VirusTotal Integration
-- API key integration
-- Upload files directly for analysis
-- Retrieves hash-based scan results
+- Displays network adapter information
+- Reports local and public IP details
+- Checks DNS configuration
+- Detects possible DNS hijacking indicators
+- Identifies VPN usage and network-related anomalies
 
----
+### Risk Reporting
 
-## Dashboard
-*All results are displayed in an interactive browser-based UI.*
+- Separates findings into risks and recommendations
+- Provides plain-language explanations
+- Helps users understand what each issue means
+- Generates audit-style reports for documentation
 
-![screen-01](https://github.com/user-attachments/assets/3e13a8d6-6432-4f6e-9745-34b7fa4ea6a3)
+### VirusTotal Support
 
-*Works on both Windows 10 & 11*
+- Optional VirusTotal API key integration
+- Hash-based file lookup support
+- File upload support for additional analysis
 
-<img width="958" height="423" alt="1a0beb1e-0b16-49e7-815e-f726f1dfff3d" src="https://github.com/user-attachments/assets/2fa2e891-c249-4a96-b0b9-183e50e0aa59" />
+> **Note:** VirusTotal API keys are stored locally in the executable directory
+> when entered. Remove saved keys before sharing the application folder.
 
 ---
 
-* Detects exploitable & unwanted software *
+<h2 align="center">Dashboard Preview</h2>
+<p align="center">
+SystemShield displays scan results in an interactive local dashboard.<br><br>
+ <img
+    src="https://github.com/user-attachments/assets/3e13a8d6-6432-4f6e-9745-34b7fa4ea6a3"
+    alt="SystemShield Dashboard"
+    width="450"
+  />
+  <br>
+</p>
 
-![screen-05](https://github.com/user-attachments/assets/23679e62-0034-4940-a137-93dba3b44dd4)
+## Project Structure
 
-<img width="899" height="81" alt="screen-08" src="https://github.com/user-attachments/assets/53a1ff0f-69c7-408a-91ba-4905ec4a1a40" />
+```text
+WebGeeks-SystemShield/
+├── .github/workflows/       # GitHub workflow files
+├── docs/                    # Documentation and supporting files
+├── web/                     # HTML, CSS, and JavaScript frontend
+├── System_Scanner.py        # Main Python scanner application
+├── detection_lists.py       # Detection lists and software indicators
+├── logo.ico                 # Application icon
+├── License.txt              # Project license
+└── README.md                # Project overview
+```
 
 ---
 
-# How to Use
+## Technology Stack
 
-## Option 1: Standalone Executable (.exe)
-- Download and run the compiled executable
-- Built using PyInstaller with all dependencies included
-- No installation required
-
-⚠️ **Note:** If a VirusTotal API key is entered, it will persist in the executable directory. Remove keys before sharing.
+- **Python** — scanner logic and system checks
+- **HTML/CSS/JavaScript** — local dashboard interface
+- **Eel** — connects the Python backend to the web-based UI
+- **PowerShell** — system-level Windows checks
+- **PyInstaller** — standalone executable packaging
 
 ---
 
-## Option 2: Run from Source (Python)
+## What SystemShield Checks
 
-### Requirements:
-- Windows 10 / 11  
-- Python 3.x  
+SystemShield reviews several areas of system health and security:
 
-### Dependencies:
-- eel
-- psutil
-- wmi
+Area | Examples 
+- Operating system | Version, build, architecture, update status 
+- Security features | Defender, firewall, BitLocker, TPM, Secure Boot 
+- User security | Account settings, password indicators, lock behavior 
+- Software | Installed apps, PUP indicators, remote access tools 
+- Browsers | Installed browsers and version status 
+- Network | Adapters, IP details, DNS, VPN, suspicious settings 
+- Reporting | Risks, recommendations, and exportable results 
+
+---
+
+## Important Notes
+
+- Does not need administrator privledges to run. 
+  - Teaches you that it's a bad habit.
+- SystemShield is designed for auditing and reporting.
+- It does not replace antivirus or endpoint protection software.
+- Results should be reviewed in context before making system changes.
+- VirusTotal functionality requires the user to provide their own API key.
+- This project is provided as freeware and is openly developed for
+  transparency, documentation, and practical use.
+- Use, redistribution, and modification are governed by the included
+  `License.txt` file.
+
+---
+
+## How to Use
+
+### Option 1: Standalone Executable
+
+1. Go to the **Releases** page.
+2. Download the latest compiled `.exe`.
+3. Run SystemShield.
+4. Start a scan from the dashboard.
+
+No installation is required.
+
+### Option 2: Run from Source
+
+#### Requirements
+
+- Windows 10 / Windows 11
+- Python 3.x
+- Run 'System_Scanner.py'
+  
+#### Install dependencies
+
+```bash
+pip install eel psutil wmi pywin32
+```
+
+#### Run
+
+```bash
+python System_Scanner.py
+```
+
+---
+
+## Roadmap
+
+Future improvements:
+
+- Expanded software detection lists
+- Improved browser version detection
+- More detailed remediation guidance
+- Better PDF report formatting
+- Additional network configuration checks
+
+---
+
+## License
+
+See `License.txt` for license information.
