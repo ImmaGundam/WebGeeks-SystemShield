@@ -1,0 +1,33 @@
+flowchart TD
+    A[User opens SystemShield] --> B[Local Eel UI]
+    B --> C[Dashboard]
+    B --> D[Apps & Programs]
+    B --> E[Network Security]
+    B --> F[VirusTotal]
+    B --> G[Remediation Analysis]
+    B --> H[About]
+
+    C --> C1[Run system scan]
+    C1 --> C2[Security baseline results]
+    C1 --> C3[Hardware/runtime profile]
+    C1 --> C4[Dashboard alerts]
+
+    D --> D1[Scan installed apps]
+    D1 --> D2[Program inventory]
+    D1 --> D3[Software detection results]
+
+    E --> E1[Scan network]
+    E1 --> E2[Adapters / DNS / VPN]
+    E1 --> E3[Network findings]
+
+    F --> F1[User enters session API key]
+    F1 --> F2[Hash lookup or file scan]
+    F2 --> F3[In-app VirusTotal result popup]
+
+    C2 --> G
+    C3 --> G
+    D3 --> G
+    E3 --> G
+    G --> G1[Expanded findings]
+    G1 --> G2[Windows Settings shortcuts]
+    G1 --> G3[Run registered uninstaller]

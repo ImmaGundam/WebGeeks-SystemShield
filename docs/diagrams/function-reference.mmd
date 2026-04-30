@@ -1,0 +1,38 @@
+flowchart TD
+    A[System_Scanner.py] --> B[perform_scan]
+    A --> C[get_programs]
+    A --> D[get_network_info]
+    A --> E[VirusTotal lookup functions]
+    A --> F[Update checker]
+    A --> G[Windows shortcut helpers]
+
+    B --> B1[OS and baseline checks]
+    B --> B2[Hardware/runtime collection]
+    B --> B3[Browser detection]
+    B --> B4[Remote/RMM/password-manager detection]
+
+    C --> C1[Enumerate uninstall registry]
+    C --> C2[Enumerate Store apps]
+    C --> C3[Classify software source]
+    C --> C4[Match software detection categories]
+
+    D --> D1[DNS and adapter scan]
+    D --> D2[VPN status]
+    D --> D3[Wi-Fi security]
+    D --> D4[SSH/Telnet and network indicators]
+
+    E --> E1[Session API key only]
+    E --> E2[Hash lookup]
+    E --> E3[File scan]
+
+    H[detection_lists.py] --> H1[Name-based lists]
+    H --> H2[Registry/path lists]
+    H --> H3[Browser metadata]
+    H --> H4[DNS review entries]
+
+    I[web/index.html + styles.css] --> I1[Dashboard rendering]
+    I --> I2[Apps & Programs UI]
+    I --> I3[Network UI]
+    I --> I4[Remediation Analysis UI]
+    I --> I5[VirusTotal UI]
+    I --> I6[About / update UI]

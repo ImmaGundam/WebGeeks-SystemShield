@@ -1,0 +1,45 @@
+flowchart TD
+    A[Scan source] --> B{Source type}
+    B --> C[System baseline]
+    B --> D[Software inventory]
+    B --> E[Network configuration]
+    B --> F[Browser metadata]
+    B --> G[Hardware/runtime data]
+
+    C --> C1[Defender / Firewall / Update]
+    C --> C2[UAC / Account / Lock / Guest / Auto-login]
+    C --> C3[Secure Boot / TPM / BitLocker / VBS]
+
+    D --> D1[Uninstall registry entries]
+    D --> D2[Store apps]
+    D --> D3[Known software detection lists]
+    D --> D4[Registry and executable-path evidence]
+
+    E --> E1[Adapters]
+    E --> E2[DNS servers]
+    E --> E3[VPN indicators]
+    E --> E4[Packet capture indicators]
+
+    F --> F1[Browser registry values]
+    F --> F2[Browser executable paths]
+    F --> F3[Version comparison]
+
+    G --> G1[System model]
+    G --> G2[CPU / GPU / Memory / Storage]
+    G --> G3[Power profile / uptime]
+
+    C1 --> H[Finding model]
+    C2 --> H
+    C3 --> H
+    D3 --> H
+    D4 --> H
+    E2 --> H
+    E3 --> H
+    E4 --> H
+    F3 --> H
+    G3 --> H
+
+    H --> I[Severity: Info / Caution / Risk / Critical]
+    H --> J[Confidence and evidence]
+    H --> K[Dashboard shorthand alert]
+    H --> L[Remediation Analysis detail]
