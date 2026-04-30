@@ -125,26 +125,117 @@ utilities.
 
 ## Screenshots
 
-| Page | Screenshot slot |
-|---|---|
-| Dashboard | Add: `docs/screenshots/dashboard.png` |
-| Apps & Programs | Add: `docs/screenshots/apps-programs.png` |
-| Apps & Programs | Add: `docs/screenshots/apps-programs2.png` |
-| Network Security | Add: `docs/screenshots/network-security.png` |
-| Remediation Analysis | Add: `docs/screenshots/remediation-analysis.png` |
-| VirusTotal | Add: `docs/screenshots/virustotal.png` |
-| VirusTotal 2 | Add: `docs/screenshots/virustotal2.png` |
-| VirusTotal 3 | Add: `docs/screenshots/virustotal3.png` |
-| About | Add: `docs/screenshots/about.png` |
+Screenshots are organized by app page.
 
-Example image block:
+---
 
-```html
+<details>
+<summary><strong>Dashboard</strong></summary>
+
+<br>
+
 <p align="center">
-  <img src="docs/screenshots/dashboard.png" alt="SystemShield Dashboard" width="700" />
+  <img src="docs/screenshots/dashboard.png"
+       alt="SystemShield Dashboard"
+       width="700" />
 </p>
-```
 
+</details>
+
+---
+
+<details>
+<summary><strong>Apps & Programs</strong></summary>
+
+<br>
+
+<p align="center">
+  <img src="docs/screenshots/apps-programs.png"
+       alt="SystemShield Apps and Programs page"
+       width="700" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/apps-programs2.png"
+       alt="SystemShield Apps and Programs scan results"
+       width="700" />
+</p>
+
+</details>
+
+---
+
+<details>
+<summary><strong>Network Security</strong></summary>
+
+<br>
+
+<p align="center">
+  <img src="docs/screenshots/network-security.png"
+       alt="SystemShield Network Security page"
+       width="700" />
+</p>
+
+</details>
+
+---
+
+<details>
+<summary><strong>Remediation Analysis</strong></summary>
+
+<br>
+
+<p align="center">
+  <img src="docs/screenshots/remediation-analysis.png"
+       alt="SystemShield Remediation Analysis page"
+       width="700" />
+</p>
+
+</details>
+
+---
+
+<details>
+<summary><strong>VirusTotal</strong></summary>
+
+<br>
+
+<p align="center">
+  <img src="docs/screenshots/virustotal.png"
+       alt="SystemShield VirusTotal lookup page"
+       width="700" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/virustotal2.png"
+       alt="SystemShield VirusTotal scan input"
+       width="700" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/virustotal3.png"
+       alt="SystemShield VirusTotal results popup"
+       width="700" />
+</p>
+
+</details>
+
+---
+
+<details>
+<summary><strong>About</strong></summary>
+
+<br>
+
+<p align="center">
+  <img src="docs/screenshots/about.png"
+       alt="SystemShield About page"
+       width="700" />
+</p>
+
+</details>
+
+```
 
 ## Project Structure
 
