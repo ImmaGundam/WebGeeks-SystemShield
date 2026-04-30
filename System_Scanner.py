@@ -8,6 +8,7 @@ import sys
 import os
 import subprocess
 import urllib.request
+import urllib.error
 import json
 import glob
 import hashlib
@@ -64,7 +65,30 @@ html_file = resource_path("web/index.html")
 
 eel.init(resource_path('web'))
 
-VERSION = "1.2.1"
+# SystemShield application version. Keep this matched with About page and detection list comments.
+VERSION = "1.3.2"
+
+# Version 1.3.2 packaging note:
+# icon.ico should live in web/data/icon.ico or data/icon.ico depending on repo layout.
+# PyInstaller uses the same icon for the EXE/taskbar via --icon, while the HTML
+# favicon provides the in-window/title icon used by the web UI.
+APP_USER_MODEL_ID = "WebGeeks.SystemShield.1.3.2"
+
+
+def _set_windows_app_user_model_id():
+    """Set a stable Windows AppUserModelID for taskbar grouping/icon behavior.
+
+    This is non-critical. The real EXE/taskbar icon still comes from the
+    PyInstaller --icon option when compiled.
+    """
+    try:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(APP_USER_MODEL_ID)
+    except Exception:
+        pass
+
+
+_set_windows_app_user_model_id()
 
 def _progress(msg, pct):
     """Send scan progress update to the UI (non-critical)."""
@@ -154,6 +178,329 @@ def enumerate_uninstall_entries():
                         continue
         except Exception:
             continue
+
+
+def _match_registry_or_paths(reg_paths, exe_paths):
+    """Return passive detection evidence for configured registry keys and exe paths.
+
+    This does not modify the system. It only records which configured value
+    caused a detection so the UI can show an analytical remediation profile.
+    """
+    evidence = []
+
+    for reg_path in reg_paths:
+        try:
+            hive = winreg.HKEY_LOCAL_MACHINE if reg_path.startswith("SOFTWARE") else winreg.HKEY_CURRENT_USER
+            with winreg.OpenKey(hive, reg_path):
+                hive_name = "HKLM" if hive == winreg.HKEY_LOCAL_MACHINE else "HKCU"
+                evidence.append({"type": "registry", "value": f"{hive_name}\\{reg_path}"})
+        except Exception:
+            pass
+
+    for exe_path in exe_paths:
+        try:
+            if '*' in exe_path:
+                matches = glob.glob(exe_path)
+                for match in matches[:5]:
+                    evidence.append({"type": "path", "value": match})
+            elif os.path.exists(exe_path):
+                evidence.append({"type": "path", "value": exe_path})
+        except Exception:
+            pass
+
+    return bool(evidence), evidence
+
+
+def _clean_detected(value, default="Undetected"):
+    """Normalize WMI/CIM values for display without exposing sensitive identifiers."""
+    try:
+        if value is None:
+            return default
+        s = str(value).strip()
+        if not s:
+            return default
+        # Remove generic WMI filler text that does not identify the actual hardware.
+        s = _re.sub(r"\((?:Standard disk drives|Fixed hard disk media)\)", "", s, flags=_re.I)
+        s = _re.sub(r"\b(?:Standard disk drives|Fixed hard disk media)\b", "", s, flags=_re.I)
+        s = _re.sub(r"\s{2,}", " ", s).strip(" -|,/\t")
+        if not s or s.lower() in (
+            "not detected", "none", "null", "unknown", "to be filled by o.e.m.",
+            "system product name", "standard disk drives", "fixed hard disk media"
+        ):
+            return default
+        return s
+    except Exception:
+        return default
+
+
+def _json_as_list(raw):
+    """Parse ConvertTo-Json output into a list."""
+    try:
+        if not raw or raw == "Not Detected":
+            return []
+        data = json.loads(raw)
+        if isinstance(data, dict):
+            return [data]
+        if isinstance(data, list):
+            return data
+    except Exception:
+        pass
+    return []
+
+
+def _gb_from_bytes(value):
+    try:
+        n = float(value)
+        if n <= 0:
+            return "Undetected"
+        return f"{round(n / (1024 ** 3))} GB"
+    except Exception:
+        return "Undetected"
+
+
+def _mb_from_kb(value):
+    try:
+        n = float(value)
+        if n <= 0:
+            return "Undetected"
+        return f"{round(n / 1024)} MB"
+    except Exception:
+        return "Undetected"
+
+
+def _mhz(value):
+    try:
+        n = int(float(value))
+        if n <= 0:
+            return "Undetected"
+        return f"{n} MHz"
+    except Exception:
+        return "Undetected"
+
+
+def _format_cache_kb(value):
+    try:
+        n = int(float(value))
+        if n <= 0:
+            return "Undetected"
+        if n >= 1024:
+            return f"{round(n / 1024)} MB"
+        return f"{n} KB"
+    except Exception:
+        return "Undetected"
+
+
+def _gpu_vendor(name):
+    n = (name or "").lower()
+    if "nvidia" in n or "geforce" in n or "quadro" in n or "rtx" in n or "gtx" in n:
+        return "NVIDIA"
+    if "amd" in n or "radeon" in n or "ati" in n:
+        return "AMD"
+    if "intel" in n or "iris" in n or "uhd" in n:
+        return "Intel"
+    if any(v in n for v in ("microsoft", "basic render", "remote desktop", "virtual", "hyper-v")):
+        return "Virtual/Software"
+    return "Undetected"
+
+
+def _get_nvidia_smi_details():
+    """Return NVIDIA GPU telemetry when nvidia-smi is available. No admin required."""
+    candidates = [
+        "nvidia-smi",
+        r"C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe",
+    ]
+    query = [
+        "--query-gpu=name,driver_version,memory.total,clocks.current.graphics,clocks.current.memory",
+        "--format=csv,noheader,nounits",
+    ]
+    for exe in candidates:
+        try:
+            out = subprocess.check_output([exe] + query, timeout=5, stderr=subprocess.STDOUT).decode(errors="ignore").strip()
+            if not out:
+                continue
+            rows = []
+            for line in out.splitlines():
+                parts = [p.strip() for p in line.split(",")]
+                while len(parts) < 5:
+                    parts.append("Undetected")
+                rows.append({
+                    "name": _clean_detected(parts[0]),
+                    "driver_version": _clean_detected(parts[1]),
+                    "adapter_ram": f"{parts[2]} MB" if parts[2] and parts[2].lower() != "[not supported]" else "Undetected",
+                    "gpu_clock": f"{parts[3]} MHz" if parts[3] and parts[3].lower() != "[not supported]" else "Undetected",
+                    "memory_clock": f"{parts[4]} MHz" if parts[4] and parts[4].lower() != "[not supported]" else "Undetected",
+                    "telemetry_source": "nvidia-smi",
+                })
+            return rows
+        except Exception:
+            continue
+    return []
+
+
+def _format_uptime(seconds):
+    try:
+        total = max(0, int(seconds))
+        days, rem = divmod(total, 86400)
+        hours, rem = divmod(rem, 3600)
+        minutes = rem // 60
+        if days > 0:
+            return f"{days} day{'s' if days != 1 else ''}, {hours} hour{'s' if hours != 1 else ''}"
+        if hours > 0:
+            return f"{hours} hour{'s' if hours != 1 else ''}, {minutes} min"
+        return f"{minutes} min"
+    except Exception:
+        return "Undetected"
+
+
+def _device_type_from_chassis(chassis_types, manufacturer="", model=""):
+    text = f"{manufacturer} {model}".lower()
+    if any(v in text for v in ("vmware", "virtualbox", "hyper-v", "qemu", "kvm", "parallels", "virtual")):
+        return "Virtual Machine"
+    try:
+        vals = chassis_types
+        if not isinstance(vals, (list, tuple)):
+            vals = [vals]
+        nums = set()
+        for v in vals:
+            try:
+                nums.add(int(v))
+            except Exception:
+                pass
+        laptop_codes = {8, 9, 10, 11, 12, 14, 30, 31, 32}
+        desktop_codes = {3, 4, 5, 6, 7, 15, 16, 35, 36}
+        if nums & laptop_codes:
+            return "Laptop"
+        if nums & desktop_codes:
+            return "Desktop"
+    except Exception:
+        pass
+    return "Undetected"
+
+
+def _collect_hardware_profile():
+    """Collect non-admin hardware inventory values for the Dashboard Hardware Profile."""
+    profile = {
+        "system_manufacturer": "Undetected",
+        "system_model": "Undetected",
+        "device_type": "Undetected",
+        "storage_devices": [],
+        "memory_module_count": "Undetected",
+        "memory_manufacturers": "Undetected",
+        "uptime": "Undetected",
+        "uptime_seconds": 0,
+        "uptime_status": "good",
+        "processors": [],
+        "power_profile_name": "Undetected",
+        "power_profile_guid": "Undetected",
+    }
+
+    cs = _json_as_list(get_ps(
+        "Get-CimInstance Win32_ComputerSystem | "
+        "Select-Object Manufacturer,Model | ConvertTo-Json"
+    ))
+    if cs:
+        profile["system_manufacturer"] = _clean_detected(cs[0].get("Manufacturer"))
+        profile["system_model"] = _clean_detected(cs[0].get("Model"))
+
+    enc = _json_as_list(get_ps(
+        "Get-CimInstance Win32_SystemEnclosure | "
+        "Select-Object ChassisTypes | ConvertTo-Json"
+    ))
+    chassis = enc[0].get("ChassisTypes") if enc else []
+    profile["device_type"] = _device_type_from_chassis(
+        chassis,
+        profile["system_manufacturer"],
+        profile["system_model"],
+    )
+
+    processors = _json_as_list(get_ps(
+        "Get-CimInstance Win32_Processor | "
+        "Select-Object Name,Manufacturer,NumberOfCores,NumberOfLogicalProcessors,MaxClockSpeed,CurrentClockSpeed,L2CacheSize,L3CacheSize,SocketDesignation | ConvertTo-Json"
+    ))
+    for cpu in processors:
+        name = _clean_detected(cpu.get("Name"))
+        manufacturer = _clean_detected(cpu.get("Manufacturer"))
+        cores = _clean_detected(cpu.get("NumberOfCores"))
+        threads = _clean_detected(cpu.get("NumberOfLogicalProcessors"))
+        max_clock = _mhz(cpu.get("MaxClockSpeed"))
+        current_clock = _mhz(cpu.get("CurrentClockSpeed"))
+        l2 = _format_cache_kb(cpu.get("L2CacheSize"))
+        l3 = _format_cache_kb(cpu.get("L3CacheSize"))
+        socket = _clean_detected(cpu.get("SocketDesignation"))
+        if name == manufacturer == cores == threads == max_clock == current_clock == l2 == l3 == socket == "Undetected":
+            continue
+        profile["processors"].append({
+            "name": name,
+            "manufacturer": manufacturer,
+            "cores": cores,
+            "threads": threads,
+            "max_clock": max_clock,
+            "current_clock": current_clock,
+            "l2_cache": l2,
+            "l3_cache": l3,
+            "socket": socket,
+        })
+
+    power_raw = get_ps("powercfg /getactivescheme")
+    if power_raw and power_raw != "Not Detected":
+        try:
+            m = _re.search(r"Power Scheme GUID:\s*([a-fA-F0-9\-]+)\s*(?:\((.*?)\))?", power_raw)
+            if m:
+                profile["power_profile_guid"] = m.group(1) or "Undetected"
+                profile["power_profile_name"] = _clean_detected(m.group(2))
+            else:
+                profile["power_profile_name"] = _clean_detected(power_raw)
+        except Exception:
+            profile["power_profile_name"] = _clean_detected(power_raw)
+
+    mem = _json_as_list(get_ps(
+        "Get-CimInstance Win32_PhysicalMemory | "
+        "Select-Object Manufacturer,Capacity,Speed | ConvertTo-Json"
+    ))
+    if mem:
+        profile["memory_module_count"] = str(len(mem))
+        manufacturers = []
+        for m in mem:
+            mf = _clean_detected(m.get("Manufacturer"))
+            if mf != "Undetected" and mf not in manufacturers:
+                manufacturers.append(mf)
+        profile["memory_manufacturers"] = ", ".join(manufacturers) if manufacturers else "Undetected"
+
+    disks = _json_as_list(get_ps(
+        "Get-CimInstance Win32_DiskDrive | "
+        "Select-Object Model,Manufacturer,MediaType,InterfaceType,Size | ConvertTo-Json"
+    ))
+    for d in disks:
+        model = _clean_detected(d.get("Model"))
+        manufacturer = _clean_detected(d.get("Manufacturer"))
+        media_type = _clean_detected(d.get("MediaType"))
+        interface_type = _clean_detected(d.get("InterfaceType"))
+        size = _gb_from_bytes(d.get("Size"))
+        if model == manufacturer == media_type == interface_type == size == "Undetected":
+            continue
+        profile["storage_devices"].append({
+            "model": model,
+            "manufacturer": manufacturer,
+            "media_type": media_type,
+            "interface": interface_type,
+            "size": size,
+        })
+
+    try:
+        uptime_seconds = int(time.time() - psutil.boot_time())
+        profile["uptime_seconds"] = uptime_seconds
+        profile["uptime"] = _format_uptime(uptime_seconds)
+        days = uptime_seconds / 86400
+        if days >= 14:
+            profile["uptime_status"] = "risk"
+        elif days >= 7:
+            profile["uptime_status"] = "caution"
+        else:
+            profile["uptime_status"] = "good"
+    except Exception:
+        pass
+
+    return profile
 
 
 # ---- TPM ACPI hardware IDs (per Microsoft / vendor ACPI TPM spec) ----
@@ -379,23 +726,112 @@ def _get_latest_versions():
             merged[k] = v
     return merged
 
+def _version_tuple(version_text):
+    """Convert version text like 'v1.3.2' or 'SystemShield-v1.3.2' into a tuple."""
+    try:
+        m = _re.search(r"(\d+(?:\.\d+){0,3})", str(version_text or ""))
+        if not m:
+            return ()
+        return tuple(int(part) for part in m.group(1).split("."))
+    except Exception:
+        return ()
+
+
+@eel.expose
+def get_app_info():
+    """Return local app metadata for the About page."""
+    return {
+        "name": "WebGeeks SystemShield",
+        "version": VERSION,
+        "repo_url": "https://github.com/ImmaGundam/WebGeeks-SystemShield",
+        "release_url": "https://github.com/ImmaGundam/WebGeeks-SystemShield/releases/latest",
+        "website_url": "https://systemshield.net/"
+    }
+
+
 @eel.expose
 def check_for_updates():
     """Compare local VERSION against the latest GitHub release tag."""
     api_url = "https://api.github.com/repos/ImmaGundam/WebGeeks-SystemShield/releases/latest"
     try:
-        req = urllib.request.Request(api_url, headers={"User-Agent": "SystemShield"})
-        with urllib.request.urlopen(req, timeout=10) as response:
+        req = urllib.request.Request(
+            api_url,
+            headers={
+                "User-Agent": f"SystemShield/{VERSION}",
+                "Accept": "application/vnd.github+json"
+            }
+        )
+        with urllib.request.urlopen(req, timeout=12) as response:
             data = json.loads(response.read().decode())
-            latest_version = data['tag_name'].lstrip('v')
-            # Tuple comparison handles 1.1 vs 1.2 and 1.1.1 vs 1.1.2
-            local_parts = tuple(int(x) for x in VERSION.split('.'))
-            remote_parts = tuple(int(x) for x in latest_version.split('.'))
-            if remote_parts > local_parts:
-                return {"status": "update_available", "version": latest_version, "current": VERSION}
-            return {"status": "up_to_date", "version": VERSION}
-    except Exception:
-        return {"status": "error", "version": VERSION}
+
+        latest_version = str(data.get("tag_name") or data.get("name") or "").lstrip("v")
+        release_url = data.get("html_url") or "https://github.com/ImmaGundam/WebGeeks-SystemShield/releases/latest"
+        assets = data.get("assets") or []
+        preferred_asset = ""
+        for asset in assets:
+            name = str(asset.get("name") or "").lower()
+            if name.endswith(".exe"):
+                preferred_asset = asset.get("browser_download_url") or ""
+                break
+        if not preferred_asset and assets:
+            preferred_asset = assets[0].get("browser_download_url") or ""
+
+        local_parts = _version_tuple(VERSION)
+        remote_parts = _version_tuple(latest_version)
+
+        payload = {
+            "version": VERSION,
+            "current": VERSION,
+            "latest": latest_version or "Unknown",
+            "release_url": release_url,
+            "download_url": preferred_asset,
+            "published_at": data.get("published_at", ""),
+        }
+
+        if not remote_parts:
+            payload.update({
+                "status": "error",
+                "message": "Latest release did not include a readable version tag."
+            })
+            return payload
+
+        if remote_parts > local_parts:
+            payload["status"] = "update_available"
+            return payload
+
+        if local_parts > remote_parts:
+            payload["status"] = "ahead_of_release"
+            payload["message"] = "Installed version is newer than the latest public GitHub release."
+            return payload
+
+        payload["status"] = "up_to_date"
+        return payload
+
+    except urllib.error.HTTPError as e:
+        if getattr(e, "code", None) == 404:
+            return {
+                "status": "no_release",
+                "version": VERSION,
+                "current": VERSION,
+                "latest": "Unknown",
+                "release_url": "https://github.com/ImmaGundam/WebGeeks-SystemShield/releases",
+                "message": "No published GitHub release was found."
+            }
+        return {
+            "status": "error",
+            "version": VERSION,
+            "current": VERSION,
+            "latest": "Unknown",
+            "message": f"GitHub returned HTTP {getattr(e, 'code', 'error')}"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "version": VERSION,
+            "current": VERSION,
+            "latest": "Unknown",
+            "message": str(e)
+        }
 
 @eel.expose
 def perform_scan():
@@ -403,6 +839,11 @@ def perform_scan():
         _progress("Starting system scan...", 0)
 
         results = {}
+        results['detection_evidence'] = {
+            'password_managers': {},
+            'remote_software': {},
+            'rmm_software': {},
+        }
         risk_count = 0
         caution_count = 0
 
@@ -813,7 +1254,10 @@ def perform_scan():
         results['ram'] = f"{ram_total} GB" + (f" @ {ram_speed} MHz" if ram_speed and ram_speed != "Not Detected" else "")
 
         # GPUs — discrete (NVIDIA/AMD) first, integrated Intel second, virtual/software last
-        _gpu_raw = get_ps("Get-CimInstance Win32_VideoController | Select-Object Name, CurrentHorizontalResolution, CurrentVerticalResolution | ConvertTo-Json")
+        _gpu_raw = get_ps(
+            "Get-CimInstance Win32_VideoController | "
+            "Select-Object Name,CurrentHorizontalResolution,CurrentVerticalResolution,AdapterRAM,DriverVersion,DriverDate,CurrentRefreshRate,VideoProcessor | ConvertTo-Json"
+        )
         try:
             _gpu_json = json.loads(_gpu_raw)
             if isinstance(_gpu_json, dict):
@@ -826,17 +1270,69 @@ def perform_scan():
                     return 2
                 return 1
             _gpu_json.sort(key=_gpu_pri)
+            nvidia_details = _get_nvidia_smi_details()
             results['gpus'] = []
-            for _g in _gpu_json:
+            for _idx, _g in enumerate(_gpu_json):
                 _gn = (_g.get('Name') or '').strip()
                 if _gn:
                     _w, _h = _g.get('CurrentHorizontalResolution'), _g.get('CurrentVerticalResolution')
+                    vendor = _gpu_vendor(_gn)
+                    adapter_ram = _gb_from_bytes(_g.get('AdapterRAM'))
+                    driver_version = _clean_detected(_g.get('DriverVersion'))
+                    gpu_clock = "Undetected"
+                    memory_clock = "Undetected"
+                    telemetry_source = "Windows WMI"
+                    if vendor == "NVIDIA" and nvidia_details:
+                        match = None
+                        for nd in nvidia_details:
+                            nd_name = nd.get('name', '')
+                            if nd_name and (nd_name.lower() in _gn.lower() or _gn.lower() in nd_name.lower()):
+                                match = nd
+                                break
+                        if match is None and _idx < len(nvidia_details):
+                            match = nvidia_details[_idx]
+                        if match:
+                            adapter_ram = match.get('adapter_ram') or adapter_ram
+                            driver_version = match.get('driver_version') or driver_version
+                            gpu_clock = match.get('gpu_clock') or gpu_clock
+                            memory_clock = match.get('memory_clock') or memory_clock
+                            telemetry_source = match.get('telemetry_source') or telemetry_source
+                    refresh = _clean_detected(_g.get('CurrentRefreshRate'))
                     results['gpus'].append({
                         'name': _gn,
-                        'resolution': f"{_w}x{_h}" if _w and _h else ''
+                        'vendor': vendor,
+                        'resolution': f"{_w}x{_h}" if _w and _h else '',
+                        'memory': adapter_ram,
+                        'driver_version': driver_version,
+                        'gpu_clock': gpu_clock,
+                        'memory_clock': memory_clock,
+                        'refresh_rate': f"{refresh} Hz" if refresh != "Undetected" else "Undetected",
+                        'video_processor': _clean_detected(_g.get('VideoProcessor')),
+                        'telemetry_source': telemetry_source,
                     })
         except Exception:
             results['gpus'] = []
+
+        # Non-admin hardware/system specification summary for Dashboard Hardware Profile.
+        hardware_profile = _collect_hardware_profile()
+        results['hardware_profile'] = hardware_profile
+        results['system_manufacturer'] = hardware_profile.get('system_manufacturer', 'Undetected')
+        results['system_model'] = hardware_profile.get('system_model', 'Undetected')
+        results['device_type'] = hardware_profile.get('device_type', 'Undetected')
+        results['storage_devices'] = hardware_profile.get('storage_devices', [])
+        results['memory_module_count'] = hardware_profile.get('memory_module_count', 'Undetected')
+        results['memory_manufacturers'] = hardware_profile.get('memory_manufacturers', 'Undetected')
+        results['uptime'] = hardware_profile.get('uptime', 'Undetected')
+        results['uptime_seconds'] = hardware_profile.get('uptime_seconds', 0)
+        results['uptime_status'] = hardware_profile.get('uptime_status', 'good')
+        results['processors'] = hardware_profile.get('processors', [])
+        results['power_profile_name'] = hardware_profile.get('power_profile_name', 'Undetected')
+        results['power_profile_guid'] = hardware_profile.get('power_profile_guid', 'Undetected')
+
+        if results['uptime_status'] == 'risk':
+            risk_count += 1
+        elif results['uptime_status'] == 'caution':
+            caution_count += 1
 
         # ---------------- PASSWORD MANAGERS ----------------
         _progress("Checking password managers...", 95)
@@ -845,29 +1341,12 @@ def perform_scan():
         pm_detection = PM_DETECTION
         
         for name, reg_paths, exe_paths in pm_detection:
-            found = False
-            # Check registry
-            for reg_path in reg_paths:
-                try:
-                    hive = winreg.HKEY_CURRENT_USER if reg_path.startswith("Software") else winreg.HKEY_LOCAL_MACHINE
-                    with winreg.OpenKey(hive, reg_path):
-                        found = True
-                        break
-                except:
-                    pass
-            # Check exe paths
-            if not found:
-                for exe_path in exe_paths:
-                    if '*' in exe_path:
-                        if glob.glob(exe_path):
-                            found = True
-                            break
-                    elif os.path.exists(exe_path):
-                        found = True
-                        break
+            found, evidence = _match_registry_or_paths(reg_paths, exe_paths)
             if found:
                 password_managers.append(name)
-                risk_count += 1
+                results['detection_evidence']['password_managers'][name] = evidence
+                # Password managers are normally beneficial security tools.
+                # Keep them visible, but do not count them as a risk by default.
         
         results['password_managers'] = password_managers
 
@@ -878,26 +1357,10 @@ def perform_scan():
         rs_detection = RS_DETECTION
         
         for name, reg_paths, exe_paths in rs_detection:
-            found = False
-            for reg_path in reg_paths:
-                try:
-                    hive = winreg.HKEY_LOCAL_MACHINE if reg_path.startswith("SOFTWARE") else winreg.HKEY_CURRENT_USER
-                    with winreg.OpenKey(hive, reg_path):
-                        found = True
-                        break
-                except:
-                    pass
-            if not found:
-                for exe_path in exe_paths:
-                    if '*' in exe_path:
-                        if glob.glob(exe_path):
-                            found = True
-                            break
-                    elif os.path.exists(exe_path):
-                        found = True
-                        break
+            found, evidence = _match_registry_or_paths(reg_paths, exe_paths)
             if found:
                 remote_software.append(name)
+                results['detection_evidence']['remote_software'][name] = evidence
                 risk_count += 1
         
         results['remote_software'] = remote_software
@@ -906,26 +1369,10 @@ def perform_scan():
         _progress("Checking RMM platforms...", 99)
         rmm_software = []
         for name, reg_paths, exe_paths in RMM_DETECTION:
-            found = False
-            for reg_path in reg_paths:
-                try:
-                    hive = winreg.HKEY_LOCAL_MACHINE if reg_path.startswith("SOFTWARE") else winreg.HKEY_CURRENT_USER
-                    with winreg.OpenKey(hive, reg_path):
-                        found = True
-                        break
-                except:
-                    pass
-            if not found:
-                for exe_path in exe_paths:
-                    if '*' in exe_path:
-                        if glob.glob(exe_path):
-                            found = True
-                            break
-                    elif os.path.exists(exe_path):
-                        found = True
-                        break
+            found, evidence = _match_registry_or_paths(reg_paths, exe_paths)
             if found:
                 rmm_software.append(name)
+                results['detection_evidence']['rmm_software'][name] = evidence
                 caution_count += 1
 
         results['rmm_software'] = rmm_software
@@ -1084,6 +1531,19 @@ def perform_scan():
             "gpus": [],
             "motherboard": "Unknown",
             "ram": "Unknown",
+            "hardware_profile": {"system_manufacturer": "Undetected", "system_model": "Undetected", "device_type": "Undetected", "storage_devices": [], "memory_module_count": "Undetected", "memory_manufacturers": "Undetected", "uptime": "Undetected", "uptime_seconds": 0, "uptime_status": "good", "processors": [], "power_profile_name": "Undetected", "power_profile_guid": "Undetected"},
+            "system_manufacturer": "Undetected",
+            "system_model": "Undetected",
+            "device_type": "Undetected",
+            "storage_devices": [],
+            "memory_module_count": "Undetected",
+            "memory_manufacturers": "Undetected",
+            "uptime": "Undetected",
+            "uptime_seconds": 0,
+            "uptime_status": "good",
+            "processors": [],
+            "power_profile_name": "Undetected",
+            "power_profile_guid": "Undetected",
             "windows_recovery": "Unknown"
         }
 
@@ -1636,57 +2096,20 @@ def get_network_info():
 
 # ==================== VIRUSTOTAL ====================
 
-_VT_CONFIG_DIR = os.path.join(os.environ.get('APPDATA', os.path.expanduser('~')), 'SystemShield')
-_VT_CONFIG_FILE = os.path.join(_VT_CONFIG_DIR, 'config.json')
+# VirusTotal API keys are session-only.
+# SystemShield does not save or remove API keys and does not create
+# a VirusTotal config file. The UI passes the key directly into each
+# lookup call for the current session only.
 
 
 @eel.expose
-def vt_save_api_key(key):
-    try:
-        os.makedirs(_VT_CONFIG_DIR, exist_ok=True)
-        cfg = {}
-        if os.path.exists(_VT_CONFIG_FILE):
-            with open(_VT_CONFIG_FILE, 'r') as f:
-                cfg = json.load(f)
-        cfg['vt_api_key'] = key
-        with open(_VT_CONFIG_FILE, 'w') as f:
-            json.dump(cfg, f)
-        return {"status": "ok"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-
-@eel.expose
-def vt_get_api_key():
-    try:
-        if os.path.exists(_VT_CONFIG_FILE):
-            with open(_VT_CONFIG_FILE, 'r') as f:
-                cfg = json.load(f)
-            return cfg.get('vt_api_key', '')
-    except Exception:
-        pass
-    return ''
-
-
-@eel.expose
-def vt_remove_api_key():
-    """Remove saved VT API key."""
-    try:
-        if os.path.exists(_VT_CONFIG_FILE):
-            with open(_VT_CONFIG_FILE, 'r') as f:
-                cfg = json.load(f)
-            cfg.pop('vt_api_key', None)
-            with open(_VT_CONFIG_FILE, 'w') as f:
-                json.dump(cfg, f)
-        return {"status": "ok"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-
-
-@eel.expose
-def vt_pick_and_scan_file():
+def vt_pick_and_scan_file(api_key=""):
     """Open a file picker dialog and scan the selected file on VirusTotal."""
     try:
+        api_key = (api_key or "").strip()
+        if not api_key:
+            return {"error": "Enter your VirusTotal API key to use file scan."}
+
         import tkinter as tk
         from tkinter import filedialog
         root = tk.Tk()
@@ -1696,27 +2119,28 @@ def vt_pick_and_scan_file():
         root.destroy()
         if not filepath:
             return {"error": "No file selected"}
-        return vt_scan_file(filepath)
+        return vt_scan_file(filepath, api_key)
     except Exception as e:
         return {"error": str(e)}
 
 
 @eel.expose
-def vt_scan_file(filepath):
+def vt_scan_file(filepath, api_key=""):
     """Upload a file to VirusTotal for scanning. Returns scan results or ID."""
     try:
-        api_key = vt_get_api_key()
+        api_key = (api_key or "").strip()
         if not api_key:
-            return {"error": "No API key configured"}
+            return {"error": "Enter your VirusTotal API key to use file scan."}
         if not os.path.exists(filepath):
             return {"error": "File not found"}
-        # First check if hash is already known
+
+        # First check if hash is already known.
         sha256 = hashlib.sha256(open(filepath, 'rb').read()).hexdigest()
-        result = vt_check_hash(sha256)
-        if result and not result.get('error'):
+        result = vt_check_hash(sha256, api_key)
+        if result and not result.get('error') and result.get("found") is not False:
             return result
-        # Upload file
-        import http.client
+
+        # Upload file only when the hash is not already known.
         import mimetypes
         boundary = '----WebKitFormBoundary7MA4YWxkTrZu0gW'
         filename = os.path.basename(filepath)
@@ -1743,12 +2167,16 @@ def vt_scan_file(filepath):
 
 
 @eel.expose
-def vt_check_hash(hash_val):
+def vt_check_hash(hash_val, api_key=""):
     """Look up a file hash on VirusTotal."""
     try:
-        api_key = vt_get_api_key()
+        api_key = (api_key or "").strip()
         if not api_key:
-            return {"error": "No API key configured"}
+            return {"error": "Enter your VirusTotal API key to use hash lookup."}
+        hash_val = (hash_val or "").strip()
+        if not hash_val:
+            return {"error": "Enter a SHA-256, SHA-1, or MD5 hash."}
+
         req = urllib.request.Request(
             f'https://www.virustotal.com/api/v3/files/{hash_val}',
             headers={'x-apikey': api_key}
@@ -1849,19 +2277,33 @@ def generate_summary(scan_data, programs_data=None, network_data=None):
     }
 
     # ---- Apps & Programs details for Page 3 ----
+    # The PDF program list uses the Apps & Programs page's current sort order.
+    # Default export is the first 30 programs; optional all-program export can be enabled from the UI.
     if programs_data:
         _all_progs = programs_data.get('programs') or []
+        _export_all = bool(programs_data.get('pdf_export_all', False))
+        _display_limit = len(_all_progs) if _export_all else 30
+        _display_progs = _all_progs[:_display_limit]
         _by_size = sorted(
             [p for p in _all_progs if (p.get('size') or 0) > 0],
             key=lambda x: x.get('size', 0), reverse=True
         )
+
+        def _program_line(p):
+            _name = str(p.get('name', 'Unknown'))
+            _size = (str(p.get('size')) + ' MB') if p.get('size') else '-'
+            return _name + ' (' + _size + ')'
+
         summary['programs'] = {
             "program_count": programs_data.get('program_count', 0),
             "total_size": programs_data.get('total_program_size', '0 GB'),
             "size_breakdown": programs_data.get('size_breakdown', {}),
             "bad_software": programs_data.get('bad_software', []),
-            "top_programs": [p['name'] + ' (' + (str(p['size']) + ' MB' if p.get('size') else '-') + ')'
-                            for p in _all_progs[:30]],
+            "export_all": _export_all,
+            "export_order": programs_data.get('pdf_export_order', 'current'),
+            "display_count": len(_display_progs),
+            "display_programs": [_program_line(p) for p in _display_progs],
+            "top_programs": [_program_line(p) for p in _all_progs[:30]],
             "top10_by_size": [{'name': p['name'], 'size': p.get('size', 0)} for p in _by_size[:10]],
             "all_programs": [{'name': p['name'], 'size': p.get('size', 0)} for p in _all_progs],
         }
@@ -1968,6 +2410,13 @@ def open_ms_settings(page):
         "encryption": "ms-settings:deviceencryption",
         "defender":   "windowsdefender://",
         "firewall":   "ms-settings:windowsdefender",
+        "apps":       "ms-settings:appsfeatures",
+        "windows_update": "ms-settings:windowsupdate",
+        "network":    "ms-settings:network-status",
+        "vpn":        "ms-settings:network-vpn",
+        "proxy":      "ms-settings:network-proxy",
+        "remote_desktop": "ms-settings:remotedesktop",
+        "recovery":   "ms-settings:recovery",
     }
     uri = _DESTINATIONS.get(page)
     if not uri:
@@ -1981,16 +2430,37 @@ def open_ms_settings(page):
 
 @eel.expose
 def uninstall_program(program_name):
-    """Attempt to uninstall a program by name using its registry uninstall string."""
+    """Run a program's Windows-registered uninstaller by name.
+
+    SystemShield does not delete files, remove registry keys, stop
+    services, or perform custom cleanup. It only opens the uninstall
+    command registered by Windows for the matching installed program.
+    """
     try:
+        target = (program_name or "").strip()
+        if not target:
+            return {"status": "error", "message": "No program name was provided."}
+
         for entry in enumerate_uninstall_entries():
             dname = (entry.get('DisplayName') or '').strip()
-            if program_name.lower() in dname.lower():
+            if not dname:
+                continue
+
+            if target.lower() in dname.lower():
                 uninstall_str = (entry.get('UninstallString') or '').strip()
                 if uninstall_str:
                     subprocess.Popen(uninstall_str, shell=True)
-                    return {"status": "ok", "message": f"Uninstaller launched for {dname}"}
-        return {"status": "error", "message": "Program not found or no uninstall string available"}
+                    return {"status": "ok", "message": f"Uninstaller opened for {dname}."}
+
+                return {
+                    "status": "error",
+                    "message": f"No registered uninstaller was found for {dname}."
+                }
+
+        return {
+            "status": "error",
+            "message": f"No registered uninstaller was found for {target}."
+        }
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
@@ -2172,71 +2642,100 @@ def open_browser_update(browser_name):
 
 
 # ==================== TITLEBAR THEMING (DWM) ====================
-# DWMWA_USE_IMMERSIVE_DARK_MODE  → dark text/icons on titlebar  (Win10 20H1+)
-# DWMWA_CAPTION_COLOR            → exact caption background color (Win11 22000+)
+# Version 1.3.2 UI polish:
+# Keep the normal Windows title bar, but tint it to match the SystemShield theme.
+# This is cosmetic only. It does not change scanner/remediation behavior.
+# DWMWA_USE_IMMERSIVE_DARK_MODE  -> white title text/buttons on dark caption color
+# DWMWA_CAPTION_COLOR            -> exact caption background color on Windows 11+
 _DWMWA_DARK_MODE   = 20
 _DWMWA_CAPTION_COL = 35
 
 # COLORREF = 0x00BBGGRR
-# Sidebar light #212f4d → B=4D G=2F R=21 → 0x004D2F21
-# Sidebar dark  #111318 → B=18 G=13 R=11 → 0x00181311
+# Sidebar light #212f4d -> B=4D G=2F R=21 -> 0x004D2F21
+# Sidebar dark  #111318 -> B=18 G=13 R=11 -> 0x00181311
 _TB_COLOR_LIGHT = 0x004D2F21
 _TB_COLOR_DARK  = 0x00181311
 
 
-def _apply_titlebar_color(use_dark=False):
-    """Set DWM caption color to match the sidebar. Called at startup and on theme toggle."""
+def _find_systemshield_windows():
+    """Return visible top-level window handles whose title contains SystemShield.
+
+    Uses ctypes instead of requiring pywin32 so the title bar theming still works
+    in portable/compiled builds where optional win32gui imports are unavailable.
+    """
+    hwnds = []
     try:
         import ctypes
-        try:
-            import win32gui  # pywin32 — already a project dependency
-        except ImportError:
-            win32gui = None
+        user32 = ctypes.WinDLL('user32', use_last_error=True)
 
-        dwmapi = ctypes.WinDLL('dwmapi')
+        EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
 
-        # Collect matching window handles
-        hwnds = []
-        if win32gui:
-            def _cb(hwnd, _):
-                if win32gui.IsWindowVisible(hwnd) and 'SystemShield' in win32gui.GetWindowText(hwnd):
+        def _callback(hwnd, _lparam):
+            try:
+                if not user32.IsWindowVisible(hwnd):
+                    return True
+                length = user32.GetWindowTextLengthW(hwnd)
+                if length <= 0:
+                    return True
+                buff = ctypes.create_unicode_buffer(length + 1)
+                user32.GetWindowTextW(hwnd, buff, length + 1)
+                title = buff.value or ''
+                if 'SystemShield' in title:
                     hwnds.append(hwnd)
-            win32gui.EnumWindows(_cb, None)
-        else:
-            # Fallback: FindWindowW by exact title
-            user32 = ctypes.WinDLL('user32')
-            hwnd = user32.FindWindowW(None, 'SystemShield')
-            if hwnd:
-                hwnds.append(hwnd)
+            except Exception:
+                pass
+            return True
 
-        color = _TB_COLOR_DARK if use_dark else _TB_COLOR_LIGHT
-        for hwnd in hwnds:
-            # Dark mode flag (Win10+) — sets button/icon contrast
-            dark_val = ctypes.c_int(1 if use_dark else 0)
-            dwmapi.DwmSetWindowAttribute(hwnd, _DWMWA_DARK_MODE,
-                                         ctypes.byref(dark_val), ctypes.sizeof(dark_val))
-            # Exact caption color (Win11 22000+ only; silently ignored on Win10)
-            color_val = ctypes.c_int(color)
-            dwmapi.DwmSetWindowAttribute(hwnd, _DWMWA_CAPTION_COL,
-                                         ctypes.byref(color_val), ctypes.sizeof(color_val))
+        user32.EnumWindows(EnumWindowsProc(_callback), 0)
     except Exception:
-        pass  # Non-critical — graceful fallback on unsupported OS/version
+        pass
+    return hwnds
+
+
+def _apply_titlebar_color(use_dark=False):
+    """Set the native Windows title bar color to match the app theme.
+
+    Light mode uses the sidebar blue. Dark mode uses the darker sidebar color.
+    The title bar uses dark-caption mode in both themes so the title text and
+    window controls remain readable against the dark branded colors.
+    """
+    try:
+        import ctypes
+        dwmapi = ctypes.WinDLL('dwmapi')
+        color = _TB_COLOR_DARK if use_dark else _TB_COLOR_LIGHT
+
+        for hwnd in _find_systemshield_windows():
+            # Dark-caption mode gives white text/buttons against the dark app colors.
+            dark_val = ctypes.c_int(1)
+            try:
+                dwmapi.DwmSetWindowAttribute(hwnd, _DWMWA_DARK_MODE,
+                                             ctypes.byref(dark_val), ctypes.sizeof(dark_val))
+            except Exception:
+                pass
+
+            # Exact caption tint. Windows 11 supports this; unsupported systems ignore it.
+            color_val = ctypes.c_int(color)
+            try:
+                dwmapi.DwmSetWindowAttribute(hwnd, _DWMWA_CAPTION_COL,
+                                             ctypes.byref(color_val), ctypes.sizeof(color_val))
+            except Exception:
+                pass
+    except Exception:
+        pass  # Non-critical cosmetic fallback
 
 
 @eel.expose
 def set_titlebar_theme(use_dark):
-    """Called from JS theme toggle to keep titlebar in sync."""
+    """Called from JS theme toggle to keep the Windows title bar in sync."""
     _apply_titlebar_color(use_dark=bool(use_dark))
 
 
 def _startup_titlebar():
-    """Background thread: apply titlebar color once the Edge window is visible."""
+    """Retry briefly while the Edge/Eel window is being created."""
     import time
-    time.sleep(1.5)          # Allow Edge/eel window to fully open
-    _apply_titlebar_color(use_dark=False)
-    # Re-check saved theme (user may have dark mode persisted in localStorage)
-    # A second call after the JS has run its initTheme() is handled by set_titlebar_theme()
-    # exposed to JS, so this covers the light-mode default reliably.
+    for _ in range(12):
+        time.sleep(0.5)
+        _apply_titlebar_color(use_dark=False)
 
 
 threading.Thread(target=_startup_titlebar, daemon=True).start()

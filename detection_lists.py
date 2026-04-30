@@ -1,5 +1,5 @@
 """
-detection_lists.py  -  WebGeeks SystemShield Detection List v1
+detection_lists.py  -  WebGeeks SystemShield Detection List v1.3.2
 Reference data for all detection and classification logic in System_Scanner.py.
 
 Each threat category lives in its own clearly-named constant.
@@ -34,6 +34,9 @@ PROGRAM CLASSIFICATION
 
 import os
 import winreg as _winreg
+
+# Detection list version. Keep this matched with System_Scanner.VERSION and About page.
+DETECTION_LIST_VERSION = "1.3.2"
 
 
 # ============================================================================
@@ -360,6 +363,7 @@ RS_DETECTION = [
     ("Parsec",
         [],
         [r"C:\Program Files\Parsec\parsecd.exe",
+         r"C:\Program Files\Parsec\pservice.exe",
          r"C:\Users\*\AppData\Roaming\Parsec\parsecd.exe"]),
     ("BeyondTrust",
         [r"SOFTWARE\Bomgar"],
@@ -369,7 +373,8 @@ RS_DETECTION = [
         [r"C:\Program Files\SolarWinds\DameWare Mini Remote Control\DWRCC.exe"]),
     ("Supremo",
         [],
-        [r"C:\Program Files\Supremo\Supremo.exe"]),
+        [r"C:\Program Files\Supremo\Supremo.exe",
+         r"C:\Program Files\Supremo\SupremoService.exe"]),
     ("Remote Utilities",
         [r"SOFTWARE\Remote Utilities"],
         [r"C:\Program Files\Remote Utilities - Host\rutserv.exe"]),
@@ -381,7 +386,9 @@ RS_DETECTION = [
         [r"C:\Program Files\AeroAdmin\AeroAdmin.exe"]),
     ("LiteManager",
         [],
-        [r"C:\Program Files\LiteManager\ROMServer.exe"]),
+        [r"C:\Program Files\LiteManager\ROMServer.exe",
+         r"C:\Program Files*\LiteManager*\ROMServer.exe",
+         r"C:\Program Files*\LiteManager*\ROMViewer.exe"]),
     ("Zoho Assist",
         [r"SOFTWARE\ZohoMeetingManager"],
         []),
@@ -453,7 +460,8 @@ DUMPING_SOFTWARE = [
          r"C:\Users\*\AppData\Local\Programs\Fiddler\Fiddler.exe"]),
     ("Charles Proxy",
         [],
-        [r"C:\Program Files\Charles\Charles.exe"]),
+        [r"C:\Program Files\Charles\Charles.exe",
+         r"C:\Program Files (x86)\Charles\Charles.exe"]),
 ]
 
 # ============================================================================
@@ -594,14 +602,26 @@ BROWSER_EXE_PATHS = [
 # NETWORK DETECTION DATA
 # ============================================================================
 
-# Known suspicious / malicious DNS server IPs
+# DNS servers worth alerting on when they appear unexpectedly.
+# NOTE: These are not all "malicious." Some are legitimate filtering DNS
+# providers. SystemShield should present them as "DNS changed / filtering /
+# review required" unless paired with stronger compromise indicators.
 KNOWN_BAD_DNS = [
-    "198.51.100.1", "203.0.113.1", "192.0.2.1",    # RFC 5737 test-net placeholders
-    "185.228.168.10", "185.228.169.10",              # Suspicious filtering DNS
-    "208.67.220.123",                                # OpenDNS block page
-    "146.112.61.104", "146.112.61.105",              # Cisco Umbrella block
-    "199.85.126.20",  "199.85.127.20",               # Norton ConnectSafe (discontinued)
-    "77.88.8.7",      "77.88.8.3",                   # Yandex DNS (data collection risk)
+    "198.51.100.1", "203.0.113.1", "192.0.2.1",      # RFC 5737 test-net placeholders; broken/misconfigured DNS if active
+
+    # CleanBrowsing DNS filters
+    "185.228.168.168", "185.228.169.168",             # CleanBrowsing Family Filter
+    "185.228.168.10",  "185.228.169.11",              # CleanBrowsing Adult Filter
+    "185.228.168.9",   "185.228.169.9",               # CleanBrowsing Security Filter
+    "185.228.169.10",                                  # Legacy/needs validation; retained to avoid behavior change
+
+    # OpenDNS / Cisco FamilyShield / Umbrella
+    "208.67.222.123", "208.67.220.123",               # OpenDNS FamilyShield
+    "146.112.61.104", "146.112.61.105",               # Cisco Umbrella block/redirect IPs
+
+    # Retired / regional filtering DNS
+    "199.85.126.20",  "199.85.127.20",                # Norton ConnectSafe policy B; retired/discontinued
+    "77.88.8.7",      "77.88.8.3",                    # Yandex Family DNS
 ]
 
 
@@ -615,3 +635,91 @@ SYSTEM_PUBLISHERS = [
     'microsoft', 'windows', 'intel', 'nvidia', 'amd', 'realtek', 'qualcomm',
     'broadcom', 'synaptics', 'conexant', 'dolby', 'maxx audio',
 ]
+
+
+# ============================================================================
+# SOURCE-BACKED DETECTION NOTES
+# ============================================================================
+# Optional metadata for review/documentation. Existing scanner logic can ignore
+# this constant. Keep tuple schemas above unchanged unless System_Scanner.py is
+# updated to consume richer metadata.
+
+DETECTION_SOURCE_NOTES = {
+    "policy": {
+        "purpose": "Passive risk reporting and remediation guidance; not malware removal.",
+        "threat_level_rule": (
+            "Threat level should be based on category + context. Remote access/RMM "
+            "tools are high-risk when unexpected on unmanaged consumer endpoints, "
+            "but legitimate in managed IT environments. DNS filters are review/warning "
+            "items unless the user did not approve the change."
+        ),
+    },
+    "sources": {
+        "windows_uninstall_registry": "https://learn.microsoft.com/en-us/windows/win32/msi/uninstall-registry-key",
+        "windows_service_wmi": "https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-service",
+        "cisa_rmm_misuse": "https://www.cisa.gov/news-events/alerts/2023/01/25/cisa-nsa-and-ms-isac-release-advisory-malicious-use-rmm-software",
+        "ftc_tech_support_scams": "https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams",
+    },
+    "source_backed_values_added": {
+        "Parsec": {
+            "executables": ["parsecd.exe", "pservice.exe"],
+            "source": "https://support.parsec.app/hc/en-us/articles/32381199341716-Parsec-App-for-Windows",
+            "confidence": "High",
+            "note": "Official Parsec documentation names loader parsecd.exe and service pservice.exe.",
+        },
+        "Supremo": {
+            "executables": ["Supremo.exe", "SupremoService.exe"],
+            "source": "https://www.supremocontrol.com/support/tutorials/how-to-run-supremo-multiple-instances-terminal-server/",
+            "confidence": "Medium",
+            "note": "Official Supremo documentation names Supremo.exe and SupremoService.exe; exact install path should be VM-confirmed.",
+        },
+        "LiteManager": {
+            "executables": ["ROMServer.exe", "ROMViewer.exe"],
+            "source": "https://litemanager.com/download/",
+            "confidence": "Medium",
+            "note": "Official LiteManager download page names server/viewer modules; exact install folder varies by edition.",
+        },
+        "Charles Proxy": {
+            "executables": ["Charles.exe"],
+            "source": "https://www.charlesproxy.com/documentation/installation/",
+            "confidence": "Medium",
+            "note": "Official docs confirm Windows installer/menu install; x86/x64 paths should be VM-confirmed.",
+        },
+        "CleanBrowsing DNS": {
+            "dns": [
+                "185.228.168.168", "185.228.169.168",
+                "185.228.168.10", "185.228.169.11",
+                "185.228.168.9", "185.228.169.9",
+            ],
+            "source": "https://cleanbrowsing.org/filters",
+            "confidence": "High",
+            "note": "Legitimate filtering DNS; alert as unexpected DNS/filtering, not malware by itself.",
+        },
+        "OpenDNS FamilyShield": {
+            "dns": ["208.67.222.123", "208.67.220.123"],
+            "source": "https://www.opendns.com/setupguide/",
+            "confidence": "High",
+            "note": "Legitimate FamilyShield filtering DNS; alert as unexpected DNS/filtering, not malware by itself.",
+        },
+    },
+    "vm_required_before_hard_detection": [
+        "SoftEther VPN registry key",
+        "HMA VPN executable path",
+        "TorGuard registry key",
+        "IVPN registry key",
+        "AirVPN registry key",
+        "StrongVPN executable path",
+        "Proton Pass executable path",
+        "Zoho Vault executable path",
+        "mSecure executable path",
+        "SafeInCloud executable path",
+        "Chrome Remote Desktop install registry key",
+        "RustDesk registry key",
+        "UltraVNC registry key",
+        "Parsec registry key",
+        "Zoho Assist unattended/service executable path",
+        "SuperOps agent executable path",
+        "RawCap storage path",
+        "SmartSniff storage path",
+    ],
+}
