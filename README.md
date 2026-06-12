@@ -18,11 +18,13 @@
   <a href="https://github.com/ImmaGundam/WebGeeks-SystemShield/releases">Releases</a>
 </p>
 
----
-
-## Overview
-
-**WebGeeks SystemShield** is a lightweight security and system auditing
+<div align="center">
+     |-------------------------------------------------------|<br>
+     <b>Current Version:</b> 1.4.2 - <b>Release:</b> 6/11/2026<br>
+     |-------------------------------------------------------|<br>
+</div>
+<br>
+SystemShield is a lightweight security and system auditing
 application designed to help users understand what may be putting their
 computer at risk.
 
@@ -50,6 +52,82 @@ configuration risks, including legitimate applications with known
 vulnerabilities, potentially unwanted programs, capture & network software,
 browser toolbars, junkware, remote access tools, RMM tools, and suspicious
 utilities.
+
+
+
+## Screenshots
+
+Screenshots are organized by app page.
+
+---
+
+<div align="center">
+  
+<details>
+<summary><strong>Dashboard</strong></summary>
+<img width="1446" height="793" alt="dash" src="https://github.com/user-attachments/assets/cd8b7bf3-7b13-446c-999f-1393ded12d82" />
+<br>
+</details>
+
+---
+
+<details>
+<summary><strong>System Information</strong></summary>
+
+<img width="1446" height="793" alt="Screenshot 2026-06-11 204659" src="https://github.com/user-attachments/assets/30a87a34-c586-43d8-b613-cd5e15693513" />
+
+
+</details>
+
+---
+
+<details>
+<summary><strong>Apps & Programs</strong></summary>
+
+<img width="1446" height="793" alt="Screenshot 2026-06-11 204703" src="https://github.com/user-attachments/assets/498caf30-b363-4451-ba5d-fcb96227a4f3" />
+
+
+</details>
+
+---
+
+<details>
+<summary><strong>Network Security</strong></summary>
+
+<img width="1446" height="793" alt="network" src="https://github.com/user-attachments/assets/33b0bcf0-4a95-4f7f-bbe9-abe0a92899f1" />
+
+
+</details>
+
+---
+
+<details>
+<summary><strong>Remediation Analysis</strong></summary>
+
+<img width="1446" height="793" alt="Screenshot 2026-06-11 204756" src="https://github.com/user-attachments/assets/d73fbee5-dd36-4555-acec-19f55a535b37" />
+
+</details>
+
+---
+
+<details>
+<summary><strong>VirusTotal</strong></summary>
+
+<img width="1446" height="793" alt="Screenshot 2026-06-11 204714" src="https://github.com/user-attachments/assets/04dacd64-f28f-4f8b-b5c8-29314f536a63" />
+
+
+</details>
+
+---
+
+<details>
+<summary><strong>About</strong></summary>
+
+<img width="1446" height="793" alt="Screenshot 2026-06-11 204717" src="https://github.com/user-attachments/assets/2a6225ac-0e5f-42ed-a918-50cb3ddca13c" />
+
+</details>
+
+</div>
 
 ---
 
@@ -122,147 +200,6 @@ utilities.
 > sensitive files unless you are permitted to submit them.
 
 ---
-
-## Screenshots
-
-Screenshots are organized by app page.
-
----
-
-<details>
-<summary><strong>Dashboard</strong></summary>
-
-<br>
-
-<p align="center">
-  <img src="docs/screenshots/dashboard.png"
-       alt="SystemShield Dashboard"
-       width="700" />
-</p>
-
-</details>
-
----
-
-<details>
-<summary><strong>Apps & Programs</strong></summary>
-
-<br>
-
-<p align="center">
-  <img src="docs/screenshots/apps-programs.png"
-       alt="SystemShield Apps and Programs page"
-       width="700" />
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/apps-programs2.png"
-       alt="SystemShield Apps and Programs scan results"
-       width="700" />
-</p>
-
-</details>
-
----
-
-<details>
-<summary><strong>Network Security</strong></summary>
-
-<br>
-
-<p align="center">
-  <img src="docs/screenshots/network-security.png"
-       alt="SystemShield Network Security page"
-       width="700" />
-</p>
-
-</details>
-
----
-
-<details>
-<summary><strong>Remediation Analysis</strong></summary>
-
-<br>
-
-<p align="center">
-  <img src="docs/screenshots/remediation-analysis.png"
-       alt="SystemShield Remediation Analysis page"
-       width="700" />
-</p>
-
-</details>
-
----
-
-<details>
-<summary><strong>VirusTotal</strong></summary>
-
-<br>
-
-<p align="center">
-  <img src="docs/screenshots/virustotal.png"
-       alt="SystemShield VirusTotal lookup page"
-       width="700" />
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/virustotal2.png"
-       alt="SystemShield VirusTotal scan input"
-       width="700" />
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/virustotal3.png"
-       alt="SystemShield VirusTotal results popup"
-       width="700" />
-</p>
-
-</details>
-
----
-
-<details>
-<summary><strong>About</strong></summary>
-
-<br>
-
-<p align="center">
-  <img src="docs/screenshots/about.png"
-       alt="SystemShield About page"
-       width="700" />
-</p>
-
-</details>
-
-```
-
-## Project Structure
-
-```text
-WebGeeks-SystemShield/
-├── .github/workflows/       # GitHub workflow files
-├── docs/                    # Documentation and supporting files
-├── web/                     # HTML, CSS, and JavaScript frontend
-├── System_Scanner.py        # Main Python scanner application
-├── detection_lists.py       # Detection lists and software indicators
-├── logo.ico                 # Application icon
-├── License.txt              # Project license
-└── README.md                # Project overview
-```
-
----
-
-## Technology Stack
-
-- **Python** — scanner logic and system checks
-- **HTML/CSS/JavaScript** — local dashboard interface
-- **Eel** — connects the Python backend to the web-based UI
-- **PowerShell** — system-level Windows checks
-- **PyInstaller** — standalone executable packaging
-
----
-
 ## What SystemShield Checks
 
 SystemShield reviews several areas of system health and security:
@@ -282,8 +219,6 @@ SystemShield reviews several areas of system health and security:
 ---
 
 ## Detection Coverage
-
-**Documentation snapshot:** v1.3.2 — 2026-04-30
 
 SystemShield currently tracks **216 unique software/browser/tool names** across
 its detection categories, plus **18 DNS review entries**.
@@ -312,183 +247,67 @@ its detection categories, plus **18 DNS review entries**.
 | Unique software/browser/tool names | 216 |
 | DNS review entries | 18 |
 
-The duplicate cross-category entries are expected: `uTorrent` and
-`Wireshark`. DNS review IPs are tracked separately from software detection.
 
----
+## Project Structure
+<details>
 
-## Remediation Model
-
-SystemShield follows a guided remediation model:
-
+```
 ```text
-Scan → Detect Evidence → Compare Against Baseline → Explain → Guide Action
-```
+WebGeeks-SystemShield/
 
-SystemShield does **not** remove files directly.
+Backend | Logic
+├── main.py Application         # entrypoint, version metadata, Windows integration, and exposed UI actions.
+├── core/version.py Composes    # MainProgram.EngineVersion.DetectionVersion application metadata.
+├── core/webview_bridge.py      # Pywebview window startup, embedded host configuration, and Python-to-JavaScript bridge dispatch.
+├── core/system_utils.py        # Shared helpers such as get_ps, ps_first, registry reads, version parsing, and formatting helpers.
+├── core/scan_helpers.py        # Shared scan helpers used across detection modules.
+├── core/scan_system.py         # Core perform_scan() orchestration and Windows baseline collection.
+├── core/browser_versions.py    # Live browser version-track fetching, in-memory TTL caching, normalization, and fallback baselines.
+├── core/browser_scan.py        # Browser detection, local version reads, latest-version fetchers, browser status evaluation, and browser update actions.
+├── core/program_scan.py        # Uninstall entry enumeration, software classification, flagged program detection, and uninstaller launch helpers.
+├── core/network_scan.py        # Network adapters, DNS, VPN detection, remote access exposure, and related checks.
+├── core/summary_builder.py     # Summary payload generation for export / PDF and user-facing report assembly.
+├── core/detection_data.py      # Detection/reference data only.
 
-Software actions use Windows-registered uninstall entries or Windows Settings
-shortcuts. This keeps remediation tied to Windows-native behavior instead of
-custom destructive removal logic.
+Front-end | UI
+├── PyWebview ]
+|
+├── ui/index.html               # Main application shell, shared runtime, modal containers, and page loading flow.
+├── ui/bridge.js                # Frontend bridge that maps UI calls onto the pywebview API.
+├── ui/main.cs                  # Shared light-theme layout, component, and utility styling.
+├── ui/main-dark.css            # Shared dark-theme overrides.
+├── ui/pages/dashboard.html     # Dashboard page structure and page-specific presentation.
+├── ui/pages/dashboard.css
+├── ui/pages/sysinfo.html       # System Information page structure and page-specific presentation.
+├── ui/pages/sysinfo.css
+├── ui/pages/programs.html      # Apps & Programs page structure and page-specific presentation.
+├── ui/pages/programs.css 
+├── ui/pages/network.html       # Network Security page structure and page-specific presentation.
+├── i/pages/network.css 
+├── ui/pages/remediation.html   # Remediation page structure and page-specific presentation.
+├── ui/pages/remediation.css 
+├── ui/pages/virustotal.html    # VirusTotal page structure and page-specific presentation.
+├── ui/pages/virustotal.css 
+├── ui/pages/about.html         # About page structure and page-specific presentation.
+├── ui/pages/about.css 
 
----
+Powered by:
+├──  Python: Scanner / detection logic
+├──  HTML/CSS/JavaScript: UI
+├──  PyWebView — API
+├──  PowerShell — inline PowerShell command strings through Python
+├──  PyInstaller — Packager for distribution
 
-## Architecture Charts
-
-Each chart is kept separate for readability. Use the full-size links to open the diagram source in its own page when the embedded GitHub preview is too small.
-
-<details>
-<summary>Application Flow Chart</summary>
-
-[Open full-size diagram](docs/diagrams/application-flow.mmd)
-
-```mermaid
-flowchart TD
-    A[User opens SystemShield] --> B[Local Eel UI]
-    B --> C[Dashboard]
-    B --> D[Apps & Programs]
-    B --> E[Network Security]
-    B --> F[VirusTotal]
-    B --> G[Remediation Analysis]
-    B --> H[About]
-
-    C --> C1[Run system scan]
-    C1 --> C2[Security baseline results]
-    C1 --> C3[Hardware/runtime profile]
-    C1 --> C4[Dashboard alerts]
-
-    D --> D1[Scan installed apps]
-    D1 --> D2[Program inventory]
-    D1 --> D3[Software detection results]
-
-    E --> E1[Scan network]
-    E1 --> E2[Adapters / DNS / VPN]
-    E1 --> E3[Network findings]
-
-    F --> F1[User enters session API key]
-    F1 --> F2[Hash lookup or file scan]
-    F2 --> F3[In-app VirusTotal result popup]
-
-    C2 --> G
-    C3 --> G
-    D3 --> G
-    E3 --> G
-    G --> G1[Expanded findings]
-    G1 --> G2[Windows Settings shortcuts]
-    G1 --> G3[Run registered uninstaller]
 ```
 
 </details>
 
-<details>
-<summary>Detection Logic Chart</summary>
-
-[Open full-size diagram](docs/diagrams/detection-logic.mmd)
-
-```mermaid
-flowchart TD
-    A[Scan source] --> B{Source type}
-    B --> C[System baseline]
-    B --> D[Software inventory]
-    B --> E[Network configuration]
-    B --> F[Browser metadata]
-    B --> G[Hardware/runtime data]
-
-    C --> C1[Defender / Firewall / Update]
-    C --> C2[UAC / Account / Lock / Guest / Auto-login]
-    C --> C3[Secure Boot / TPM / BitLocker / VBS]
-
-    D --> D1[Uninstall registry entries]
-    D --> D2[Store apps]
-    D --> D3[Known software detection lists]
-    D --> D4[Registry and executable-path evidence]
-
-    E --> E1[Adapters]
-    E --> E2[DNS servers]
-    E --> E3[VPN indicators]
-    E --> E4[Packet capture indicators]
-
-    F --> F1[Browser registry values]
-    F --> F2[Browser executable paths]
-    F --> F3[Version comparison]
-
-    G --> G1[System model]
-    G --> G2[CPU / GPU / Memory / Storage]
-    G --> G3[Power profile / uptime]
-
-    C1 --> H[Finding model]
-    C2 --> H
-    C3 --> H
-    D3 --> H
-    D4 --> H
-    E2 --> H
-    E3 --> H
-    E4 --> H
-    F3 --> H
-    G3 --> H
-
-    H --> I[Severity: Info / Caution / Risk / Critical]
-    H --> J[Confidence and evidence]
-    H --> K[Dashboard shorthand alert]
-    H --> L[Remediation Analysis detail]
-```
-
-</details>
-
-<details>
-<summary>Function Reference Chart</summary>
-
-[Open full-size diagram](docs/diagrams/function-reference.mmd)
-
-```mermaid
-flowchart TD
-    A[System_Scanner.py] --> B[perform_scan]
-    A --> C[get_programs]
-    A --> D[get_network_info]
-    A --> E[VirusTotal lookup functions]
-    A --> F[Update checker]
-    A --> G[Windows shortcut helpers]
-
-    B --> B1[OS and baseline checks]
-    B --> B2[Hardware/runtime collection]
-    B --> B3[Browser detection]
-    B --> B4[Remote/RMM/password-manager detection]
-
-    C --> C1[Enumerate uninstall registry]
-    C --> C2[Enumerate Store apps]
-    C --> C3[Classify software source]
-    C --> C4[Match software detection categories]
-
-    D --> D1[DNS and adapter scan]
-    D --> D2[VPN status]
-    D --> D3[Wi-Fi security]
-    D --> D4[SSH/Telnet and network indicators]
-
-    E --> E1[Session API key only]
-    E --> E2[Hash lookup]
-    E --> E3[File scan]
-
-    H[detection_lists.py] --> H1[Name-based lists]
-    H --> H2[Registry/path lists]
-    H --> H3[Browser metadata]
-    H --> H4[DNS review entries]
-
-    I[web/index.html + styles.css] --> I1[Dashboard rendering]
-    I --> I2[Apps & Programs UI]
-    I --> I3[Network UI]
-    I --> I4[Remediation Analysis UI]
-    I --> I5[VirusTotal UI]
-    I --> I6[About / update UI]
-```
-
-</details>
 
 ---
 
 ## Important Notes
 
-- SystemShield does not need administrator privileges for its main checks.
-- Some values may show as `Undetected` when Windows does not expose them without elevated permissions or vendor-specific tools.
+- SystemShield does not need administrator privileges to run.
 - SystemShield is designed for auditing, reporting, and Windows-based remediation guidance.
 - It does not replace antivirus or endpoint protection software.
 - It does not remove files directly.
@@ -497,10 +316,8 @@ flowchart TD
 - PDF reports use the current Apps & Programs sort order. Program output defaults to the top 30 entries unless the user enables all detected programs.
 - VirusTotal functionality requires the user to provide their own API key.
 - VirusTotal API keys are used only for the current lookup session and are not saved by SystemShield.
-- This project is provided as freeware and is openly developed for
-  transparency, documentation, and practical use.
-- Use, redistribution, and modification are governed by the included
-  `License.txt` file.
+- This project is provided as freeware and is openly developed to be transparent in its purpose and operation.
+- Use, redistribution, and modification are governed by the included `License.txt` file.
 
 ---
 
@@ -521,34 +338,20 @@ No installation is required.
 
 - Windows 10 / Windows 11
 - Python 3.x
-- Run `System_Scanner.py`
+- Run `main.py`
   
 #### Install dependencies
 
 ```bash
-pip install eel psutil wmi pywin32
+pip install pywebview psutil wmi pywin32
 ```
 
 #### Run
 
 ```bash
-python System_Scanner.py
+python main.py
 ```
 
----
-
-## Roadmap
-
-Future improvements:
-
-- Expanded software detection lists
-- Improved browser version detection
-- More detailed remediation guidance
-- Additional PDF/report formatting options
-- Additional network configuration checks
-- Optional installer packaging alongside portable builds
-
----
 
 ## License
 
