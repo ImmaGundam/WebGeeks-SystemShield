@@ -1,0 +1,14 @@
+        <!-- NETWORK SECURITY -->
+        <div id="page-network" class="page-section">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-3"><h2 class="fw-bold mb-0"><i class="bi bi-wifi icon-blue"></i>Network Security</h2><div id="net-vpn-bar"></div></div>
+                <div class="d-flex gap-2">
+                    <button onclick="doNetworkRefresh()" class="btn btn-sm btn-outline-primary" title="Release and renew IP"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
+                    <button onclick="doNetworkReset()" class="btn btn-sm btn-outline-warning" title="Disable and re-enable main adapter"><i class="bi bi-arrow-repeat me-1"></i>Reset</button>
+                    <button onclick="loadNetwork()" class="btn btn-sm btn-primary"><i class="bi bi-search me-1"></i>Scan Network</button>
+                </div>
+            </div>
+            <div id="net-top-alerts"></div>
+            <div id="net-dns-alerts"></div>
+            <div class="row g-2" id="network-content"><div class="col-12 text-center py-5"><p class="text-muted">Click "Scan Network" to analyze your network configuration.</p></div></div>
+        </div>

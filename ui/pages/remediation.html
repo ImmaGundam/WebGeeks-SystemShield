@@ -1,0 +1,23 @@
+        <!-- REMEDIATION ANALYSIS -->
+        <div id="page-remediation" class="page-section">
+            <div class="remediation-page-head mb-3">
+                <div class="remediation-title-block">
+                    <h2 class="fw-bold mb-1"><i class="bi bi-clipboard2-pulse icon-blue"></i>Remediation Analysis</h2>
+                    <p class="small text-muted mb-0" style="max-width:760px;">Detailed breakdown of scan findings, evidence, secure baseline comparison, and Windows-based remediation guidance.</p>
+                </div>
+                <div class="remediation-top-actions">
+                    <button id="remediation-refresh-btn" onclick="refreshRemediationPage()" class="btn btn-sm btn-outline-primary" style="display:none;"><i class="bi bi-arrow-clockwise me-1"></i>Refresh Page</button>
+                    <button onclick="eel.open_apps_settings()()" class="btn btn-sm btn-outline-secondary"><i class="bi bi-box-arrow-up-right me-1"></i>Apps Settings</button>
+                    <button onclick="eel.open_ms_settings('defender')()" class="btn btn-sm btn-outline-secondary"><i class="bi bi-shield-check me-1"></i>Windows Security</button>
+                </div>
+            </div>
+            <div id="remediation-profile-status" class="mb-2"></div>
+            <div id="remediation-profile-content">
+                <div class="card compact-card remediation-empty text-center py-5">
+                    <i class="bi bi-clipboard2-data remediation-empty-icon"></i>
+                    <h5 class="fw-bold mt-2">No scan profile loaded</h5>
+                    <p class="small text-muted mb-3">Run a system scan first. SystemShield will use the collected values to build this remediation profile.</p>
+                    <button onclick="runScan()" class="btn btn-sm btn-primary mx-auto"><i class="bi bi-play-fill me-1"></i>Run Scan</button>
+                </div>
+            </div>
+        </div>

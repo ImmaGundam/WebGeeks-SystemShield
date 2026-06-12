@@ -1,0 +1,122 @@
+/* programs.css - apps and programs page styles
+   Purpose: Style installed software inventory, storage profile, and program actions. */
+
+#page-programs.active{
+  display:flex;
+  flex-direction:column;
+  height:calc(100vh - 36px);
+  max-height:calc(100vh - 36px);
+  min-height:0;
+  overflow:hidden;
+}
+body.programs-view-active{overflow:hidden}
+body.programs-view-active .main-content{height:100vh;min-height:0;overflow:hidden}
+.programs-header-row{flex-shrink:0;gap:10px}
+.programs-search-row{flex-wrap:wrap;justify-content:flex-end}
+.programs-search-row .programs-header-action,#prog-scan-btn{min-width:86px}
+.programs-icon-legend{flex-shrink:0;margin-bottom:8px}
+.icon-legend{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:center;
+  margin-bottom:10px;
+  padding:8px 12px;
+  border-radius:8px;
+  background:#f8fafc;
+  color:var(--muted);
+  font-size:.7rem;
+}
+.programs-window-card{
+  flex:1 1 0;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+  margin-bottom:0;
+  overflow:hidden;
+}
+.programs-scroll-list{flex:1 1 0;max-height:100%;min-height:0;overflow-y:auto}
+.prog-item{
+  display:grid;
+  grid-template-columns:minmax(92px,112px) minmax(0,1fr) minmax(72px,96px);
+  align-items:center;
+  gap:10px;
+  padding:7px 4px;
+  border-bottom:1px solid var(--border);
+  color:var(--text);
+  font-size:.8rem;
+}
+.prog-name{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-weight:600;
+}
+.prog-size{
+  color:var(--muted);
+  font-size:.76rem;
+  font-variant-numeric:tabular-nums;
+  text-align:right;
+  white-space:nowrap;
+}
+.src-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  padding:2px 7px;
+  border-radius:999px;
+  font-size:.6rem;
+  font-weight:800;
+  white-space:nowrap;
+}
+.src-badge i{font-size:.78rem}
+.src-user{background:#e0e7ff;color:#3730a3}
+.src-windows{background:#dbeafe;color:#1e40af}
+.src-store{background:#d1fae5;color:#065f46}
+.bad-sw-alert{margin-bottom:12px;padding:12px;border:1px solid var(--risk-border);border-radius:8px;background:var(--risk-bg)}
+.bad-sw-alert .title{margin-bottom:8px;font-weight:800;color:#991b1b}
+.bad-sw-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 0;font-size:.78rem}
+.size-breakdown-inner{border-radius:8px;background:#f8fafc;color:var(--text)}
+.size-bar{display:flex;height:8px;overflow:hidden;border-radius:999px;background:#e5edf7}
+.size-bar .seg-system{background:#3b82f6}
+.size-bar .seg-user{background:#8b5cf6}
+.size-bar .seg-store{background:#10b981}
+.programs-pdf-export-option{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-left:auto;
+  padding-left:10px;
+  border-left:1px solid var(--border);
+  color:var(--muted);
+  font-size:.7rem;
+  white-space:nowrap;
+}
+.programs-pdf-export-option input{width:13px;height:13px;margin:0;accent-color:var(--primary)}
+.programs-pdf-export-option span{font-weight:700;color:var(--text)}
+.programs-pdf-export-option small{font-size:.62rem;color:var(--muted)}
+
+body.dark .icon-legend,
+body.dark .size-breakdown-inner{background:#1e2128;color:var(--text)}
+body.dark .prog-item{border-bottom-color:var(--border)}
+body.dark .src-user{background:#283593;color:#c5cae9}
+body.dark .src-windows{background:#1565c0;color:#bbdefb}
+body.dark .src-store{background:#00695c;color:#b2dfdb}
+
+@media(max-width:900px){
+  body.programs-view-active{overflow:auto}
+  body.programs-view-active .main-content{height:auto;overflow:visible}
+  #page-programs.active{height:auto;max-height:none;min-height:auto;overflow:visible}
+  .programs-window-card{min-height:360px}
+  .programs-scroll-list{min-height:260px;max-height:60vh}
+  .programs-header-row{align-items:flex-start!important;flex-direction:column}
+  .programs-search-row{justify-content:flex-start;width:100%}
+}
+@media(max-width:760px){
+  .programs-pdf-export-option{width:100%;margin-left:0;padding-left:0;border-left:0;justify-content:flex-start}
+  .prog-item{grid-template-columns:36px minmax(0,1fr) minmax(62px,82px);gap:8px}
+  .src-badge{width:28px;height:24px;padding:0}
+  .src-badge span{display:none}
+}

@@ -1,0 +1,8 @@
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.venv/
+dist/
+docs/pyinstaller-cache/
+docs/release-notes.md
+docs/systemshield-version-info.txt

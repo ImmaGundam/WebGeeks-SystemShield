@@ -1,0 +1,83 @@
+name: SystemShield Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build release package
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r docs/requirements-build.txt
+
+      - name: Python compile check
+        run: python -m compileall -q main.py core scripts
+
+      - name: Build PyInstaller package
+        run: ./scripts/build-pyinstaller.ps1
+
+      - name: Read application version
+        id: meta
+        run: |
+          $version = python -c "from core.version import VERSION; print(VERSION)"
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "artifact_name=SystemShield-v$version-windows-x64" >> $env:GITHUB_OUTPUT
+
+      - name: Validate tag matches application version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          $expectedTag = "v${{ steps.meta.outputs.version }}"
+          if ("${{ github.ref_name }}" -ne $expectedTag) {
+            throw "Tag ${{ github.ref_name }} does not match application version $expectedTag."
+          }
+
+      - name: Archive release package
+        run: |
+          $artifact = "${{ steps.meta.outputs.artifact_name }}"
+          $zipPath = "dist/$artifact.zip"
+          if (Test-Path -LiteralPath $zipPath) {
+            Remove-Item -LiteralPath $zipPath -Force
+          }
+          Compress-Archive -LiteralPath "dist/SystemShield.exe" -DestinationPath $zipPath
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.artifact_name }}
+          path: |
+            dist/SystemShield.exe
+            dist/${{ steps.meta.outputs.artifact_name }}.zip
+            docs/release-notes.md
+            docs/systemshield-version-info.txt
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: SystemShield v${{ steps.meta.outputs.version }}
+          body_path: docs/release-notes.md
+          files: |
+            dist/SystemShield.exe
+            dist/${{ steps.meta.outputs.artifact_name }}.zip

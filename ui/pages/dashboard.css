@@ -1,0 +1,232 @@
+/* dashboard.css - dashboard page styles
+   Purpose: Style dashboard scan results, risk summaries, and hardware preview output. */
+
+#page-scan.active{display:block}
+body.scan-view-active .main-content{min-height:100vh}
+#page-scan.active.is-scanning{
+  min-height:calc(100vh - 36px);
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:auto minmax(0,1fr);
+}
+#page-scan .header-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:12px;
+}
+#page-scan .header-left{min-width:0;flex:1}
+.risk-wheel-container{position:relative;width:82px;height:82px;flex:0 0 82px}
+.risk-wheel-container canvas{width:82px!important;height:82px!important}
+.risk-center-text{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+}
+.risk-center-text .number{font-size:1.25rem;font-weight:900;line-height:1;color:var(--text)}
+.risk-center-text .label{font-size:.55rem;font-weight:800;text-transform:uppercase;color:var(--muted)}
+
+.system-info-preview{margin-top:8px}
+.system-preview-card{
+  padding:10px 12px;
+  border-radius:10px;
+  background:transparent;
+}
+.system-preview-title{font-size:.88rem;font-weight:800;color:var(--text)}
+.system-preview-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.hardware-summary-chip{
+  display:inline-flex;
+  align-items:center;
+  max-width:280px;
+  min-width:0;
+  padding:4px 10px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background:#f8fafc;
+  color:var(--text);
+  font-size:.7rem;
+  line-height:1.2;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.hardware-summary-chip strong{margin-right:4px}
+.system-preview-uptime{cursor:help}
+
+.dashboard-grid{
+  display:grid!important;
+  grid-template-columns:repeat(12,minmax(0,1fr));
+  gap:10px!important;
+  align-items:stretch;
+}
+.dashboard-full{grid-column:1 / -1}
+.dashboard-grid-item{min-width:0}
+.dashboard-area-os{grid-column:span 4}
+.dashboard-area-security{grid-column:span 4}
+.dashboard-area-software{grid-column:span 4}
+.dashboard-card{
+  width:100%;
+  height:100%;
+  min-height:0;
+  margin:0!important;
+  overflow:visible;
+  display:flex;
+  flex-direction:column;
+}
+.dashboard-kv-grid{display:grid;grid-template-columns:1fr;gap:5px}
+.dashboard-kv-item{
+  display:grid;
+  grid-template-columns:minmax(72px,.72fr) minmax(0,1fr);
+  align-items:center;
+  gap:7px;
+  min-width:0;
+  padding:5px 7px;
+  border-radius:7px;
+  background:#f8fafc;
+  line-height:1.16;
+}
+.dashboard-kv-label{
+  min-width:0;
+  overflow:hidden;
+  color:var(--muted);
+  font-size:.62rem;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.dashboard-kv-value{
+  min-width:0;
+  overflow:hidden;
+  font-size:.72rem;
+  font-weight:800;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.dashboard-dense-list .soft-subtitle{margin:6px 0 3px!important;font-size:.61rem!important}
+.dashboard-dense-list .soft-row,
+.dashboard-dense-list .d-flex.justify-content-between.align-items-center.small.py-1{
+  min-height:26px!important;
+  margin-bottom:4px!important;
+  padding:5px 8px!important;
+  line-height:1.16!important;
+}
+
+.hardware-panel{padding:8px 10px;border-radius:10px;background:transparent}
+.hardware-panel-title{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:.78rem;font-weight:800;color:var(--text)}
+.hardware-grid-expanded{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:8px 10px}
+.hardware-block,
+.hardware-compact-card{grid-column:span 4;min-width:0}
+.hardware-wide{grid-column:span 6}
+.hardware-chip{
+  display:inline-flex;
+  align-items:center;
+  max-width:100%;
+  min-width:0;
+  padding:4px 10px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background:#f8fafc;
+  color:var(--text);
+  font-size:.72rem;
+  line-height:1.2;
+}
+.hw-chip-detail{display:block;border-radius:7px}
+.hw-name{font-weight:800;color:var(--text);overflow-wrap:anywhere}
+.hw-details{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:3px 8px;margin-top:3px}
+.hw-meta{display:block;min-width:0;color:var(--muted);font-size:.64rem;overflow-wrap:anywhere}
+.hw-meta strong{color:var(--text);font-weight:800}
+
+.scan-loading-panel{grid-column:1 / -1;display:flex;align-items:center;justify-content:center;min-height:260px}
+#page-scan.is-scanning #report-content.dashboard-grid{
+  grid-column:1;
+  grid-row:2;
+  display:flex!important;
+  align-items:center;
+  justify-content:center;
+  min-height:0;
+  height:100%;
+}
+#page-scan.is-scanning .header-row{margin-bottom:0}
+#page-scan.is-scanning #risk-alerts-box,
+#page-scan.is-scanning #remediation-box{
+  display:none;
+}
+#page-scan.is-scanning .scan-loading-panel{
+  width:100%;
+  height:100%;
+  min-height:0;
+}
+.scan-loading-box{
+  width:min(520px,100%);
+  padding:18px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--card-bg);
+  text-align:center;
+}
+.scan-progress-shell{height:8px;overflow:hidden;border-radius:999px;background:#e5edf7}
+.scan-progress-shell .progress-bar{height:100%}
+
+.recommended-actions-alert{
+  display:grid;
+  grid-template-columns:max-content minmax(0,1fr);
+  align-items:start;
+  gap:14px;
+  padding:8px 12px;
+  border:1px solid var(--risk-border);
+  border-radius:8px;
+  background:var(--risk-bg);
+  font-size:.78rem;
+}
+.recommended-actions-label{
+  display:inline-flex;
+  align-items:center;
+  align-self:center;
+  gap:6px;
+  margin:0;
+  color:var(--text);
+  font-size:.78rem;
+  font-weight:800;
+  line-height:1.15;
+  white-space:nowrap;
+}
+#remediation-box:not(:empty){margin-bottom:12px}
+.recommended-actions-list{
+  display:grid;
+  gap:8px;
+  min-width:0;
+}
+.recommended-action-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) max-content;
+  align-items:center;
+  gap:12px;
+}
+.recommended-action-text{
+  min-width:0;
+  color:var(--text);
+  line-height:1.3;
+}
+.recommended-action-buttons{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+
+body.dark .hardware-summary-chip,
+body.dark .dashboard-kv-item,
+body.dark .hardware-chip{background:#1e2128;border-color:var(--border)}
+body.dark .scan-loading-box{background:var(--card-bg);border-color:var(--border)}
+body.dark .scan-progress-shell{background:#2d3748}
+
+@media(max-width:1240px){
+  .dashboard-area-os,.dashboard-area-security{grid-column:span 6}
+  .dashboard-area-software{grid-column:1 / -1}
+}
+@media(max-width:820px){
+  #page-scan .header-row{flex-direction:column}
+  .dashboard-area-os,.dashboard-area-security,.dashboard-area-software{grid-column:1 / -1}
+  .recommended-actions-alert{grid-template-columns:1fr}
+  .recommended-action-row{grid-template-columns:1fr}
+  .recommended-action-buttons{justify-content:flex-start}
+}
