@@ -26,16 +26,16 @@ jobs:
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r docs/requirements-build.txt
+          pip install -r build/requirements-build.txt
 
       - name: Python compile check
-        run: python -m compileall -q main.py core scripts
+        run: python -m compileall -q main.py core build
 
       - name: Generate build metadata
-        run: python scripts/write_build_metadata.py
+        run: python build/write_build_metadata.py
 
       - name: Build PyInstaller package
-        run: ./scripts/build-pyinstaller.ps1
+        run: ./build/build-pyinstaller.ps1
 
       - name: Read application version
         id: meta

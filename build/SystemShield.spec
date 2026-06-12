@@ -5,13 +5,13 @@ from pathlib import Path
 from PyInstaller.utils.hooks import collect_submodules
 
 
-docs_root = Path(SPECPATH)
-project_root = docs_root.parent
+build_root = Path(SPECPATH)
+project_root = build_root.parent
 ui_root = project_root / "ui"
-version_file = docs_root / "systemshield-version-info.txt"
+version_file = project_root / "docs" / "systemshield-version-info.txt"
 
 if not version_file.exists():
-    raise SystemExit("Missing docs/systemshield-version-info.txt. Run scripts/write_build_metadata.py first.")
+    raise SystemExit("Missing docs/systemshield-version-info.txt. Run build/write_build_metadata.py first.")
 
 ui_datas = []
 for path in ui_root.rglob("*"):

@@ -1,5 +1,5 @@
-# webview_host.py - pywebview host module
-# Purpose: Provide an eel-compatible bridge backed by a native pywebview window.
+# webview_bridge.py - webview bridge module
+# Purpose: Provide the application bridge between Python actions and the pywebview window.
 
 import json
 import os
@@ -8,13 +8,14 @@ import threading
 import webview
 
 
-class EelCompat:
+class WebviewBridge:
     def __init__(self, window_title="SystemShield"):
         self._window_title = window_title
         self._ui_root = ""
         self._api = None
         self._window = None
         self._loaded = False
+        self._exposed = {}
         self._pending_js = []
         self._pending_lock = threading.Lock()
 
@@ -22,22 +23,36 @@ class EelCompat:
         self._ui_root = os.path.abspath(ui_root)
 
     def expose(self, func):
+        self._exposed[func.__name__] = func
         return func
 
     def set_api(self, api):
         self._api = api
 
-    def update_scan_progress(self, message, progress):
-        self.call_js("update_scan_progress", message, progress)
+    def build_api(self):
+        class BridgeApi:
+            pass
 
-    def call_js(self, function_name, *args):
+        for function_name, function in self._exposed.items():
+            def _method(_self, *args, __function=function, **kwargs):
+                return __function(*args, **kwargs)
+
+            _method.__name__ = function_name
+            setattr(BridgeApi, function_name, _method)
+
+        return BridgeApi()
+
+    def update_scan_progress(self, message, progress):
+        self.dispatch_js("update_scan_progress", message, progress)
+
+    def dispatch_js(self, function_name, *args):
         payload = list(args)
         if not self._window or not self._loaded:
             with self._pending_lock:
                 self._pending_js.append((function_name, payload))
             return None
 
-        script = "window.__eelDispatch({0}, {1});".format(
+        script = "window.__appBridgeDispatch({0}, {1});".format(
             json.dumps(function_name),
             json.dumps(payload),
         )
@@ -51,33 +66,13 @@ class EelCompat:
             pending = list(self._pending_js)
             self._pending_js.clear()
         for function_name, args in pending:
-            self.call_js(function_name, *args)
+            self.dispatch_js(function_name, *args)
 
     def _on_loaded(self):
         self._loaded = True
         self._flush_pending_js()
 
-    def start(
-        self,
-        start_page,
-        mode="edge",
-        host="localhost",
-        port=0,
-        block=True,
-        jinja_templates=None,
-        cmdline_args=None,
-        size=None,
-        position=None,
-        geometry=None,
-        close_callback=None,
-        app_mode=True,
-        all_interfaces=False,
-        disable_cache=True,
-        default_path="index.html",
-        app=None,
-        shutdown_delay=1.0,
-        suppress_error=False,
-    ):
+    def start(self, start_page, size=None, position=None):
         if not self._ui_root:
             raise RuntimeError("UI root was not initialized before start().")
         if self._api is None:

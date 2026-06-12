@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 dist/
 docs/pyinstaller-cache/
+build/pyinstaller-cache/
 **/pyinstaller-cache/
 docs/release-notes.md
 docs/systemshield-version-info.txt

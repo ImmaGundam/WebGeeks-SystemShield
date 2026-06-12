@@ -6,8 +6,8 @@ $ErrorActionPreference = "Stop"
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $scriptRoot
 $metadataScript = Join-Path $scriptRoot "write_build_metadata.py"
-$specFile = Join-Path $projectRoot "docs\SystemShield.spec"
-$workPath = Join-Path $projectRoot "docs\pyinstaller-cache"
+$specFile = Join-Path $scriptRoot "SystemShield.spec"
+$workPath = Join-Path $scriptRoot "pyinstaller-cache"
 $distPath = Join-Path $projectRoot "dist"
 $pythonExe = (& python -c "import sys; print(sys.executable)").Trim()
 
@@ -19,7 +19,7 @@ Push-Location $projectRoot
 try {
     & $pythonExe -c "import PyInstaller" 2>$null
     if ($LASTEXITCODE -ne 0) {
-        throw "PyInstaller is not installed for $pythonExe. Run: pip install -r docs/requirements-build.txt"
+        throw "PyInstaller is not installed for $pythonExe. Run: pip install -r build/requirements-build.txt"
     }
 
     & $pythonExe $metadataScript

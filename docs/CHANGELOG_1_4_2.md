@@ -1,11 +1,10 @@
 # SystemShield v1.4.2
 
-- Removed the native sidecar publish path and returned release packaging to the Python scan engine and UI bundle.
-- Replaced browser version hardcoding with live upstream version resolution, cached browser track normalization, and safer fallback handling.
+- Replaced browser version hardcoding for Firefox Developer Edition with live upstream version resolution, cached browser track normalization, and safer fallback handling.
 - Split page-specific markup and styles into dedicated HTML and CSS assets to reduce cross-page styling overlap.
 - Reworked the System Information layout into grouped dashboard-style sections with overflow hints, storage row flow, and repositioned power profile details.
 - Tightened dashboard scan-state centering plus recommended-action spacing and alignment to keep result cards stable during scanning.
-- Replaced the external Eel browser host with a pywebview desktop host backed by the embedded Windows WebView2 runtime while preserving the existing UI bridge contract through a compatibility shim.
+- Replaced the previous external browser host with a pywebview desktop host backed by the embedded Windows WebView2 runtime and a native application bridge.
 
 
 ## Backend layout
@@ -14,7 +13,7 @@
   Application entrypoint, version metadata, Windows integration, and exposed UI actions.
 - `core/version.py`
   Composes `MainProgram.EngineVersion.DetectionVersion` application metadata.
-- `core/webview_host.py`
+- `core/webview_bridge.py`
   Pywebview window startup, embedded host configuration, and Python-to-JavaScript bridge dispatch.
 - `core/system_utils.py`
   Shared helpers such as `get_ps`, `ps_first`, registry reads, version parsing, and formatting helpers.
@@ -39,8 +38,8 @@
 
 - `ui/index.html`
   Main application shell, shared runtime, modal containers, and page loading flow.
-- `ui/eel.js`
-  Frontend compatibility shim that maps existing `eel.*` calls onto the pywebview API.
+- `ui/bridge.js`
+  Frontend bridge that maps UI calls onto the pywebview API.
 - `ui/main.css`
   Shared light-theme layout, component, and utility styling.
 - `ui/main-dark.css`

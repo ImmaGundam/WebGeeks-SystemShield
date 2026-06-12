@@ -1,5 +1,5 @@
-/* eel.js - bridge compatibility module
-   Purpose: Provide an eel-style frontend API backed by pywebview. */
+/* bridge.js - frontend bridge module
+   Purpose: Provide the application bridge between the UI and the pywebview API. */
 
 (function (global) {
     var exposed = Object.create(null);
@@ -23,7 +23,7 @@
         });
     }
 
-    var eel = {
+    var bridge = {
         expose: function (fn) {
             if (typeof fn === 'function' && fn.name) {
                 exposed[fn.name] = fn;
@@ -32,7 +32,7 @@
         }
     };
 
-    global.__eelDispatch = function (name, args) {
+    global.__appBridgeDispatch = function (name, args) {
         var fn = exposed[name];
         if (typeof fn !== 'function') {
             return null;
@@ -45,7 +45,7 @@
         }
     };
 
-    global.eel = new Proxy(eel, {
+    global.appBridge = new Proxy(bridge, {
         get: function (target, prop) {
             if (prop in target) {
                 return target[prop];

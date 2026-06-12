@@ -7,7 +7,7 @@
     <meta name="msapplication-TileColor" content="#252d3a">
     <meta name="msapplication-TileImage" content="favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="text/javascript" src="eel.js"></script>
+    <script type="text/javascript" src="bridge.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -116,7 +116,7 @@ function showPage(p){
     scheduleHoverTitles(document);
 }
 
-eel.expose(update_scan_progress);
+appBridge.expose(update_scan_progress);
 function update_scan_progress(message, progress) {
     var bar = document.getElementById('scan-progress-bar');
     var status = document.getElementById('scan-status');
@@ -125,7 +125,7 @@ function update_scan_progress(message, progress) {
 }
 
 /* LANGUAGE */
-async function initLanguage(){try{var lang=await eel.get_system_language()();systemLang=lang;var sel=document.getElementById('lang-select'),area=document.getElementById('lang-selector-area');if(lang.installed&&lang.installed.length>0){sel.innerHTML='';for(var i=0;i<lang.installed.length;i++){var opt=document.createElement('option');opt.value=lang.installed[i];opt.textContent=lang.installed[i];if(lang.code&&lang.installed[i].toLowerCase().startsWith(lang.code.toLowerCase().split('-')[0]))opt.selected=true;sel.appendChild(opt)}area.style.display='flex'}if(!lang.code&&!lang.display){document.getElementById('lang-warning-box').innerHTML='<div class="lang-warning"><i class="bi bi-exclamation-triangle me-1"></i>Could not detect your system language. Defaulting to English.</div>'}}catch(e){document.getElementById('lang-warning-box').innerHTML='<div class="lang-warning"><i class="bi bi-exclamation-triangle me-1"></i>Could not detect your system language. Defaulting to English.</div>'}}
+async function initLanguage(){try{var lang=await appBridge.get_system_language()();systemLang=lang;var sel=document.getElementById('lang-select'),area=document.getElementById('lang-selector-area');if(lang.installed&&lang.installed.length>0){sel.innerHTML='';for(var i=0;i<lang.installed.length;i++){var opt=document.createElement('option');opt.value=lang.installed[i];opt.textContent=lang.installed[i];if(lang.code&&lang.installed[i].toLowerCase().startsWith(lang.code.toLowerCase().split('-')[0]))opt.selected=true;sel.appendChild(opt)}area.style.display='flex'}if(!lang.code&&!lang.display){document.getElementById('lang-warning-box').innerHTML='<div class="lang-warning"><i class="bi bi-exclamation-triangle me-1"></i>Could not detect your system language. Defaulting to English.</div>'}}catch(e){document.getElementById('lang-warning-box').innerHTML='<div class="lang-warning"><i class="bi bi-exclamation-triangle me-1"></i>Could not detect your system language. Defaulting to English.</div>'}}
 function changeLanguage(c){}
 
 /* UPDATE */
@@ -160,7 +160,7 @@ async function checkUpdate(){
     if(detail)detail.textContent='Checking GitHub releases...';
     setAboutUpdateState('neutral');
     try{
-        var res=await eel.check_for_updates()();
+        var res=await appBridge.check_for_updates()();
         var current=res.current||res.version||'Unknown';
         var latest=res.latest||res.version||'Unknown';
         document.getElementById('about-current-version').textContent='v'+String(current).replace(/^v/i,'');
@@ -210,7 +210,7 @@ async function checkUpdate(){
 }
 async function initAppInfo(){
     try{
-        var info=await eel.get_app_info()();
+        var info=await appBridge.get_app_info()();
         var v='v'+String(info.version||'0.0.0').replace(/^v/i,'');
         document.title='WebGeeks SystemShield '+v;
         ['app-version-text','about-current-version'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=v;});
@@ -474,7 +474,7 @@ function renderHardwarePanel(data,startExpanded,collapsible,mode){
         '<div class="hardware-collapsed-summary">'+collapsedSummary+'</div>'+ 
         '<div class="hardware-grid hardware-grid-expanded">'+            hwBlock('bi-pc-display','System','System manufacturer and model detected from Windows hardware inventory.',[systemText],'hardware-compact-card')+ 
             hwBlock('bi-laptop','Device','Chassis/device type detected without admin rights.',[hardwareNameLine(deviceType)],'hardware-compact-card')+ 
-            hwBlock('bi-lightning-charge','Power Profile','Active Windows power plan. Click to open Power Options.',[powerText],'hardware-compact-card',"eel.open_power_options()()")+ 
+            hwBlock('bi-lightning-charge','Power Profile','Active Windows power plan. Click to open Power Options.',[powerText],'hardware-compact-card',"appBridge.open_power_options()()")+ 
             hwBlock('bi-clock-history','Uptime','Live system uptime since last boot. Long uptime may indicate a restart is needed.', ['<span class="hardware-uptime-chip hardware-uptime-live'+uptimeClass+'">'+esc(uptimeText)+'</span>'], 'hardware-compact-card hardware-uptime-card '+uptimeStatus)+ 
             hwBlock('bi-cpu','CPU','Processor model, manufacturer, core/thread count, and clock information available from Windows without admin rights.',cpuItems,'hardware-wide hardware-cpu-card')+ 
             hwBlock('bi-gpu-card','GPU','Graphics adapter model, vendor, memory, driver, and available clock telemetry. NVIDIA clocks use nvidia-smi when present; AMD/Intel clocks may be undetected without vendor telemetry.',gpuParts,'hardware-wide hardware-gpu-card')+ 
@@ -550,7 +550,7 @@ function renderSystemHardwareCard(data){
         '<div class="system-info-axis-item system-info-axis-uptime" title="Don&#39;t forget to turn off your PC when not in use."><span>Uptime</span><strong class="hardware-uptime-live">'+esc(uptimeText)+'</strong></div>';
 
     var powerHead=''+
-        systemInfoValue('Power Profile',powerName,'system-info-power-value',"eel.open_power_options()()",'bi-lightning-charge')+
+        systemInfoValue('Power Profile',powerName,'system-info-power-value',"appBridge.open_power_options()()",'bi-lightning-charge')+
         (powerGuid&&powerGuid!=='Undetected'?systemInfoValue('GUID',powerGuid,'system-info-guid-value'):'');
 
     var cpuBody='';
@@ -655,7 +655,7 @@ async function runScan(){
     document.getElementById('remediation-box').innerHTML='';
     document.getElementById('risk-alerts-box').innerHTML='';
     document.getElementById('system-info-preview').innerHTML='';
-    var data=await eel.perform_scan()();
+    var data=await appBridge.perform_scan()();
     if(scanPage)scanPage.classList.remove('is-scanning');
     lastScanData=data;
     scanProfileState.system=true;
@@ -677,17 +677,17 @@ async function runScan(){
     /* REMEDIATION */
     var rem="";
     function ri(t,f,label){label=label||'Fix';return '<div class="recommended-action-row"><span class="recommended-action-text">'+t+'</span><span class="recommended-action-buttons"><button class="fix-btn fix-btn-outline" onclick="'+f+'">'+label+'</button></span></div>'}
-    if(data.user_security&&data.user_security.uac==="Disabled")rem+=ri("Enable UAC","eel.open_uac_settings()()");
-    if(data.drive_encryption==="Not Encrypted")rem+=ri("Enable BitLocker Drive Encryption","eel.open_ms_settings('encryption')()");
-    if(data.lock_security&&data.lock_security.password_set==="No")rem+=ri("Set a password for your user account","eel.open_ms_settings('signin')()");
-    if(data.lock_security&&data.lock_security.lock_screen==="Disabled")rem+=ri("Enable screen lock timeout","eel.open_ms_settings('lockscreen')()");
-    if(data.auto_login==="Enabled")rem+=ri("Disable automatic login","eel.open_netplwiz()()");
-    if(data.guest_account==="Enabled")rem+=ri("Disable the Guest account","eel.open_computer_management()()");
-    if(data.defender_realtime==="Disabled")rem+=ri("Enable Windows Defender Real-time Protection","eel.open_ms_settings('defender')()");
-    if(data.fw_details&&!data.fw_details.windows_fw_enabled&&data.fw_details.third_party_count===0)rem+=ri("Enable Windows Firewall","eel.open_ms_settings('firewall')()" );
+    if(data.user_security&&data.user_security.uac==="Disabled")rem+=ri("Enable UAC","appBridge.open_uac_settings()()");
+    if(data.drive_encryption==="Not Encrypted")rem+=ri("Enable BitLocker Drive Encryption","appBridge.open_ms_settings('encryption')()");
+    if(data.lock_security&&data.lock_security.password_set==="No")rem+=ri("Set a password for your user account","appBridge.open_ms_settings('signin')()");
+    if(data.lock_security&&data.lock_security.lock_screen==="Disabled")rem+=ri("Enable screen lock timeout","appBridge.open_ms_settings('lockscreen')()");
+    if(data.auto_login==="Enabled")rem+=ri("Disable automatic login","appBridge.open_netplwiz()()");
+    if(data.guest_account==="Enabled")rem+=ri("Disable the Guest account","appBridge.open_computer_management()()");
+    if(data.defender_realtime==="Disabled")rem+=ri("Enable Windows Defender Real-time Protection","appBridge.open_ms_settings('defender')()");
+    if(data.fw_details&&!data.fw_details.windows_fw_enabled&&data.fw_details.third_party_count===0)rem+=ri("Enable Windows Firewall","appBridge.open_ms_settings('firewall')()" );
     if(data.uptime_status&&data.uptime_status==='risk')rem+=ri("Review long system uptime before restarting","showPage('remediation')","Review");
     if(data.remote_software&&data.remote_software.length>0)for(var rsi=0;rsi<data.remote_software.length;rsi++)rem+=ri("Review remote access software: "+esc(data.remote_software[rsi]),"runUninstaller('"+jsArg(data.remote_software[rsi])+"')","Run Uninstaller");
-    if(data.browsers)for(var j=0;j<data.browsers.length;j++){if(data.browsers[j].discontinued){if(data.browsers[j].name==='Internet Explorer'&&data.win_release==='11')continue;if(data.browsers[j].name==='Internet Explorer'&&data.win_release==='10')rem+=ri("Disable Internet Explorer in 'Turn Windows features on or off'","eel.open_windows_features()()");else rem+=ri("Review discontinued browser: "+esc(data.browsers[j].name),"runUninstaller('"+jsArg(data.browsers[j].name)+"')","Run Uninstaller")}}
+    if(data.browsers)for(var j=0;j<data.browsers.length;j++){if(data.browsers[j].discontinued){if(data.browsers[j].name==='Internet Explorer'&&data.win_release==='11')continue;if(data.browsers[j].name==='Internet Explorer'&&data.win_release==='10')rem+=ri("Disable Internet Explorer in 'Turn Windows features on or off'","appBridge.open_windows_features()()");else rem+=ri("Review discontinued browser: "+esc(data.browsers[j].name),"runUninstaller('"+jsArg(data.browsers[j].name)+"')","Run Uninstaller")}}
     if(rem)document.getElementById('remediation-box').innerHTML='<div class="recommended-actions-alert"><strong class="recommended-actions-label"><i class="bi bi-exclamation-triangle-fill"></i><span>Recommended Actions:</span></strong><div class="recommended-actions-list">'+rem+'</div></div>';
 
     /* RISK WHEEL */
@@ -725,7 +725,7 @@ async function runScan(){
     var lockH=(sv(data.lock_security,'lock_screen')==='Disabled'||!pwSet)?hintQ(pwSet?'Enable lock screen timeout in Settings \u2192 Personalization \u2192 Lock screen.':'Set a password first, then enable lock screen timeout.'):'';
     var sleepH=(sv(data.lock_security,'sleep_timeout')==='Disabled'||!pwSet)?hintQ(!pwSet?'Set a password, then configure sleep in Settings \u2192 System \u2192 Power & Sleep.':'Configure sleep in Settings \u2192 System \u2192 Power & Sleep.'):'';
     var wuVal=data.windows_update||'Unknown';
-    var wuH='<div class="security-item"><div class="label">Windows Update</div><div class="value clickable-result '+sc(wuVal,'Running','text-success','text-suggestion')+'" onclick="eel.open_windows_update()()" title="Click to open Windows Update">'+esc(wuVal)+'</div></div>';
+    var wuH='<div class="security-item"><div class="label">Windows Update</div><div class="value clickable-result '+sc(wuVal,'Running','text-success','text-suggestion')+'" onclick="appBridge.open_windows_update()()" title="Click to open Windows Update">'+esc(wuVal)+'</div></div>';
     var acctType=sv(data.user_security,'account_type','Unknown');
     var acctClass=acctType.indexOf('Microsoft')>=0?'text-success':acctType.indexOf('Domain')>=0?'text-suggestion':'';
     var winrecH='<div class="security-item"><div class="label">Recovery Env</div><div class="value '+sc(data.windows_recovery,'Enabled')+'">'+(data.windows_recovery||'Unknown')+'</div></div>';
@@ -771,24 +771,24 @@ async function runUninstaller(n){
     var msg='Run the Windows-registered uninstaller for "'+n+'"?\n\nSystemShield will not remove files directly.';
     if(!confirm(msg))return;
     try{
-        var r=await eel.uninstall_program(n)();
+        var r=await appBridge.uninstall_program(n)();
         if(r&&r.status==='ok'){
             alert(r.message||('Uninstaller opened for '+n+'.'));
         }else{
             var m=(r&&r.message)?r.message:('No registered uninstaller was found for '+n+'.');
             if(confirm(m+'\n\nOpen Apps & Features instead?')){
-                await eel.open_apps_settings()();
+                await appBridge.open_apps_settings()();
             }
         }
     }catch(e){
         if(confirm('No registered uninstaller was found for '+n+'.\n\nOpen Apps & Features instead?')){
-            await eel.open_apps_settings()();
+            await appBridge.open_apps_settings()();
         }
     }
 }
 async function reviewSoftware(n){return runUninstaller(n)}
 async function uninstallSoftware(n){return runUninstaller(n)}
-async function openBrowserUpdate(n){await eel.open_browser_update(n)()}
+async function openBrowserUpdate(n){await appBridge.open_browser_update(n)()}
 
 /* REMEDIATION ANALYSIS */
 function remediationSeverityClass(sev){sev=(sev||'Info').toLowerCase();if(sev==='critical'||sev==='risk')return 'risk';if(sev==='caution'||sev==='review')return 'caution';return 'info'}
@@ -885,11 +885,11 @@ function remediationButton(f){
     if(!f)return '';
     if(f.softwareName){
         return '<button class="btn btn-sm btn-outline-primary remediation-action" onclick="runUninstaller(\''+jsArg(f.softwareName)+'\')"><i class="bi bi-box-arrow-up-right me-1"></i>Run Uninstaller</button> '+
-               '<button class="btn btn-sm btn-outline-secondary remediation-action" onclick="eel.open_apps_settings()()"><i class="bi bi-list-ul me-1"></i>Open Apps &amp; Features</button>';
+               '<button class="btn btn-sm btn-outline-secondary remediation-action" onclick="appBridge.open_apps_settings()()"><i class="bi bi-list-ul me-1"></i>Open Apps &amp; Features</button>';
     }
     var shortcut=f.shortcut;
     if(!shortcut)return '';
-    var map={apps:["Apps Settings","eel.open_apps_settings()()"],defender:["Windows Security","eel.open_ms_settings('defender')()"],firewall:["Firewall Settings","eel.open_ms_settings('firewall')()"],signin:["Sign-in Options","eel.open_ms_settings('signin')()"],lockscreen:["Lock Screen","eel.open_ms_settings('lockscreen')()"],powersleep:["Power Settings","eel.open_ms_settings('powersleep')()"],encryption:["Encryption Settings","eel.open_ms_settings('encryption')()"],windows_update:["Windows Update","eel.open_windows_update()()"],remote_desktop:["Remote Desktop","eel.open_ms_settings('remote_desktop')()"],network:["Network Settings","eel.open_ms_settings('network')()"],recovery:["Recovery Settings","eel.open_ms_settings('recovery')()"],uac:["UAC Settings","eel.open_uac_settings()()"],netplwiz:["User Accounts","eel.open_netplwiz()()"],computer_management:["Computer Management","eel.open_computer_management()()"],windows_features:["Windows Features","eel.open_windows_features()()"]};
+    var map={apps:["Apps Settings","appBridge.open_apps_settings()()"],defender:["Windows Security","appBridge.open_ms_settings('defender')()"],firewall:["Firewall Settings","appBridge.open_ms_settings('firewall')()"],signin:["Sign-in Options","appBridge.open_ms_settings('signin')()"],lockscreen:["Lock Screen","appBridge.open_ms_settings('lockscreen')()"],powersleep:["Power Settings","appBridge.open_ms_settings('powersleep')()"],encryption:["Encryption Settings","appBridge.open_ms_settings('encryption')()"],windows_update:["Windows Update","appBridge.open_windows_update()()"],remote_desktop:["Remote Desktop","appBridge.open_ms_settings('remote_desktop')()"],network:["Network Settings","appBridge.open_ms_settings('network')()"],recovery:["Recovery Settings","appBridge.open_ms_settings('recovery')()"],uac:["UAC Settings","appBridge.open_uac_settings()()"],netplwiz:["User Accounts","appBridge.open_netplwiz()()"],computer_management:["Computer Management","appBridge.open_computer_management()()"],windows_features:["Windows Features","appBridge.open_windows_features()()"]};
     var m=map[shortcut];if(!m)return '';return '<button class="btn btn-sm btn-outline-primary remediation-action" onclick="'+m[1]+'"><i class="bi bi-box-arrow-up-right me-1"></i>'+m[0]+'</button>'
 }
 function refreshRemediationPage(){
@@ -923,7 +923,7 @@ async function loadPrograms(opts){
     if(scanBtn){scanBtn.disabled=true;scanBtn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>'+(firstSoftwareScan?'Scanning':'Refreshing');}
     if(el&&!opts.auto)el.innerHTML='<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> '+(firstSoftwareScan?'Scanning programs...':'Refreshing programs...')+'</div>';
     else if(el&&opts.auto&&!programCache.length)el.innerHTML='<div class="text-center py-3 text-muted small">Building app inventory from last scan...</div>';
-    var data=await eel.get_programs()();programCache=data.programs||[];programDataCache=data;scanProfileState.software=true;renderRemediationPage();
+    var data=await appBridge.get_programs()();programCache=data.programs||[];programDataCache=data;scanProfileState.software=true;renderRemediationPage();
     if(scanBtn){scanBtn.disabled=false;scanBtn.innerHTML='<i class="bi bi-arrow-clockwise me-1"></i>Refresh';}
     document.getElementById('prog-count-label').innerHTML='<i class="bi bi-box icon-blue"></i>Programs ('+(data.program_count||0)+')';
     document.getElementById('prog-size-label').innerText='Total: '+data.total_program_size;
@@ -966,8 +966,8 @@ function renderPrograms(){
 
 /* UTILITY */
 function toggleMinimize(btn){var sec=btn.closest('.net-section');sec.classList.toggle('minimized');btn.innerHTML=sec.classList.contains('minimized')?'+':'&minus;';btn.title=sec.classList.contains('minimized')?'Expand':'Minimize'}
-async function doNetworkRefresh(){if(!confirm('Refresh the network connection now?\n\nThis will release and renew the current IP configuration.'))return;try{var r=await eel.network_refresh()();alert(r&&r.message?r.message:'Network refreshed.');loadNetwork()}catch(e){alert('Error: '+e)}}
-async function doNetworkReset(){if(!confirm('Reset the main network adapter now?\n\nThis will temporarily disconnect and reconnect the adapter. Continue?'))return;try{var r=await eel.network_reset()();alert(r&&r.message?r.message:'Network reset complete. A restart may be required.')}catch(e){alert('Error: '+e)}}
+async function doNetworkRefresh(){if(!confirm('Refresh the network connection now?\n\nThis will release and renew the current IP configuration.'))return;try{var r=await appBridge.network_refresh()();alert(r&&r.message?r.message:'Network refreshed.');loadNetwork()}catch(e){alert('Error: '+e)}}
+async function doNetworkReset(){if(!confirm('Reset the main network adapter now?\n\nThis will temporarily disconnect and reconnect the adapter. Continue?'))return;try{var r=await appBridge.network_reset()();alert(r&&r.message?r.message:'Network reset complete. A restart may be required.')}catch(e){alert('Error: '+e)}}
 
 /* NETWORK */
 async function loadNetwork(){
@@ -976,7 +976,7 @@ async function loadNetwork(){
     document.getElementById('net-dns-alerts').innerHTML='';
     document.getElementById('net-top-alerts').innerHTML='';
     document.getElementById('net-vpn-bar').innerHTML='';
-    var data=await eel.get_network_info()();
+    var data=await appBridge.get_network_info()();
     networkData=data;
     scanProfileState.network=true;
     renderRemediationPage();
@@ -986,8 +986,8 @@ async function loadNetwork(){
     if(!data.vpn_clients||data.vpn_clients.length===0)ta+='<div class="info-alert"><i class="bi bi-shield-lock me-1"></i>Consider using a VPN while browsing online to encrypt your traffic and protect your privacy.</div>';
     if(data.dns_alerts&&data.dns_alerts.length>0){for(var i=0;i<data.dns_alerts.length;i++)ta+=makeRiskAlert(data.dns_alerts[i]);ta+='<div class="alert alert-warning py-2 px-3 mb-3 small" style="border-radius:8px;"><i class="bi bi-info-circle me-1"></i>Consider changing DNS to a trusted provider (1.1.1.1 or 8.8.8.8).</div>'}
     if(data.dumping_software&&data.dumping_software.length>0)for(var di=0;di<data.dumping_software.length;di++)ta+=makeSuggestionAlert('Packet capture/proxy tool detected: '+esc(data.dumping_software[di]),'<button class="fix-btn" onclick="runUninstaller(\''+jsArg(data.dumping_software[di])+'\')">Run Uninstaller</button>'+hintQ('Packet capture, proxy, and sniffer tools can inspect traffic. If not in use, uninstall or disable them.'));
-    if(data.ssh_server_enabled)ta+=makeRiskAlert('SSH Server (sshd) is running — allows remote connections','<button class="fix-btn" onclick="eel.open_windows_features()()">Fix</button>'+hintQ('Disable OpenSSH Server in Windows Features or stop the sshd service to prevent remote SSH access.'));
-    if(data.telnet_enabled)ta+=makeRiskAlert('Telnet Client is enabled — insecure remote protocol','<button class="fix-btn" onclick="eel.open_windows_features()()">Fix</button>'+hintQ('Disable Telnet Client in Turn Windows features on or off. Telnet transmits data including passwords in plain text.'));
+    if(data.ssh_server_enabled)ta+=makeRiskAlert('SSH Server (sshd) is running — allows remote connections','<button class="fix-btn" onclick="appBridge.open_windows_features()()">Fix</button>'+hintQ('Disable OpenSSH Server in Windows Features or stop the sshd service to prevent remote SSH access.'));
+    if(data.telnet_enabled)ta+=makeRiskAlert('Telnet Client is enabled — insecure remote protocol','<button class="fix-btn" onclick="appBridge.open_windows_features()()">Fix</button>'+hintQ('Disable Telnet Client in Turn Windows features on or off. Telnet transmits data including passwords in plain text.'));
     document.getElementById('net-top-alerts').innerHTML=ta;
 
     function netVal(label,value,cls){
@@ -1117,7 +1117,7 @@ async function vtPickAndScanFile(){
     var key=getVTSessionKey();
     if(!key)return;
     showVTResult({loading:true});
-    var r=await eel.vt_pick_and_scan_file(key)();
+    var r=await appBridge.vt_pick_and_scan_file(key)();
     showVTResult(r);
 }
 async function vtCheckHash(){
@@ -1126,7 +1126,7 @@ async function vtCheckHash(){
     var h=document.getElementById('vt-hash-input').value.trim();
     if(!h){showVTResult({error:'Please enter a hash value'});return}
     showVTResult({loading:true});
-    var r=await eel.vt_check_hash(h,key)();
+    var r=await appBridge.vt_check_hash(h,key)();
     showVTResult(r);
 }
 function closeVTPopup(){
@@ -1190,7 +1190,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeVTPopup
 /* SUMMARY/EXPORT */
 async function showSummary(){
     if(!lastScanData){alert('Please run a scan first.');return}
-    var s=await eel.generate_summary(lastScanData,getProgramExportData(),networkData)();
+    var s=await appBridge.generate_summary(lastScanData,getProgramExportData(),networkData)();
     var ov=document.getElementById('summary-overlay'),ct=document.getElementById('summary-content');
     var iH='';if(s.issues&&s.issues.length>0){for(var i=0;i<s.issues.length;i++)iH+='<div class="summary-issue"><strong>'+esc(s.issues[i].description)+'</strong><div class="fix">\u21b3 '+esc(s.issues[i].remediation)+'</div></div>'}else iH='<div class="text-success small text-center py-2">No issues found \u2014 your system looks great!</div>';
     ct.innerHTML='<div id="pdf-export-container"><div class="pdf-page"><div class="d-flex justify-content-between align-items-start mb-3"><div><h4 class="fw-bold mb-1"><i class="bi bi-shield-check text-primary me-2"></i>SystemShield Report</h4><div class="small text-muted">'+esc(s.generated_at)+'</div></div><button class="btn-close" onclick="closeSummary()"></button></div><div class="row g-2 mb-3"><div class="col-6"><div class="small"><span class="text-muted">User:</span> '+esc(s.system?s.system.user:'')+'</div></div><div class="col-6"><div class="small"><span class="text-muted">OS:</span> '+esc(s.system?s.system.os:'')+'</div></div><div class="col-6"><div class="small"><span class="text-muted">CPU:</span> '+esc(s.system?s.system.cpu:'')+'</div></div><div class="col-6"><div class="small"><span class="text-muted">RAM:</span> '+esc(s.system?s.system.ram:'')+'</div></div></div><div class="d-flex gap-3 mb-3"><div class="text-center"><div class="fs-3 fw-bold text-danger">'+s.risk_count+'</div><div class="small text-muted">Risks</div></div><div class="text-center"><div class="fs-3 fw-bold text-suggestion">'+s.caution_count+'</div><div class="small text-muted">Suggestions</div></div></div><h6 class="fw-bold mb-2">Issues &amp; Remediation</h6>'+iH+'</div>'+
@@ -1277,8 +1277,8 @@ function exportSummaryPDF(){var el=document.getElementById('pdf-export-container
 function copySummary(){var el=document.getElementById('pdf-export-container');navigator.clipboard.writeText(el.innerText).then(function(){var btn=event.target.closest('button');if(btn){var o=btn.innerHTML;btn.innerHTML='<i class="bi bi-check me-1"></i>Copied!';setTimeout(function(){btn.innerHTML=o},2000)}})}
 
 /* THEME */
-function toggleTheme(){var b=document.body;b.classList.toggle('dark');var d=b.classList.contains('dark');localStorage.setItem('ss-theme',d?'dark':'light');document.getElementById('theme-icon').className=d?'bi bi-sun-fill':'bi bi-moon-fill';document.querySelector('meta[name="theme-color"]').content=d?'#111318':'#212f4d';document.getElementById('theme-toggle').title=d?'Light mode':'Dark mode';try{eel.set_titlebar_theme(d)()}catch(e){}}
-function initTheme(){var d=localStorage.getItem('ss-theme')==='dark';if(d){document.body.classList.add('dark');document.getElementById('theme-icon').className='bi bi-sun-fill';document.querySelector('meta[name="theme-color"]').content='#111318';document.getElementById('theme-toggle').title='Light mode'}try{eel.set_titlebar_theme(d)()}catch(e){}}
+function toggleTheme(){var b=document.body;b.classList.toggle('dark');var d=b.classList.contains('dark');localStorage.setItem('ss-theme',d?'dark':'light');document.getElementById('theme-icon').className=d?'bi bi-sun-fill':'bi bi-moon-fill';document.querySelector('meta[name="theme-color"]').content=d?'#111318':'#212f4d';document.getElementById('theme-toggle').title=d?'Light mode':'Dark mode';try{appBridge.set_titlebar_theme(d)()}catch(e){}}
+function initTheme(){var d=localStorage.getItem('ss-theme')==='dark';if(d){document.body.classList.add('dark');document.getElementById('theme-icon').className='bi bi-sun-fill';document.querySelector('meta[name="theme-color"]').content='#111318';document.getElementById('theme-toggle').title='Light mode'}try{appBridge.set_titlebar_theme(d)()}catch(e){}}
 
 /* SIDEBAR TOGGLE */
 function toggleSidebar(){var sb=document.getElementById('sidebar'),bd=document.getElementById('sidebar-backdrop');if(window.innerWidth<=768){var open=sb.classList.toggle('mobile-open');bd.style.display=open?'block':'none'}else{var col=sb.classList.toggle('collapsed');localStorage.setItem('ss-sidebar',col?'collapsed':'expanded')}}

@@ -34,11 +34,11 @@ from core.version import (
     VERSION,
     VERSION_SCHEME,
 )
-from core.webview_host import EelCompat
+from core.webview_bridge import WebviewBridge
 
 
 APP_WINDOW_TITLE = f"WebGeeks SystemShield v{VERSION}"
-eel = EelCompat(window_title=APP_WINDOW_TITLE)
+ui_bridge = WebviewBridge(window_title=APP_WINDOW_TITLE)
 
 def resource_path(relative_path):
     """Resolve a path relative to the script/exe location, regardless of CWD."""
@@ -50,7 +50,7 @@ def resource_path(relative_path):
         base = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base, relative_path)
 
-eel.init(resource_path('ui'))
+ui_bridge.init(resource_path('ui'))
 
 
 def _set_windows_app_user_model_id():
@@ -71,7 +71,7 @@ _set_windows_app_user_model_id()
 def _progress(msg, pct):
     """Send scan progress update to the UI (non-critical)."""
     try:
-        eel.update_scan_progress(msg, pct)
+        ui_bridge.update_scan_progress(msg, pct)
     except Exception:
         pass
 
@@ -86,7 +86,7 @@ def _version_metadata():
         "detection_version": DETECTION_VERSION,
     }
 
-@eel.expose
+@ui_bridge.expose
 def get_app_info():
     """Return local app metadata for the About page."""
     return {
@@ -98,7 +98,7 @@ def get_app_info():
     }
 
 
-@eel.expose
+@ui_bridge.expose
 def check_for_updates():
     """Compare local VERSION against the latest GitHub release tag."""
     api_url = "https://api.github.com/repos/ImmaGundam/WebGeeks-SystemShield/releases/latest"
@@ -182,31 +182,30 @@ def check_for_updates():
             "message": str(e)
         }
 
-@eel.expose
+@ui_bridge.expose
 def perform_scan():
     """Run the full SystemShield scan and return dashboard payload."""
     return perform_scan_data(_progress)
 
-@eel.expose
+@ui_bridge.expose
 def get_programs():
     """Return installed programs for Apps & Programs page."""
     return get_programs_data()
 
 
-@eel.expose
 def check_browser_version(browser_name, version):
     """Check browser version status using core.browser_scan logic."""
     return check_browser_version_logic(browser_name, version)
 
 # ==================== NETWORK SECURITY ====================
 
-@eel.expose
+@ui_bridge.expose
 def get_network_info():
     """Gather Network Security data using core.network_scan logic."""
     return get_network_info_data()
 # ==================== VIRUSTOTAL ====================
 
-@eel.expose
+@ui_bridge.expose
 def vt_pick_and_scan_file(api_key=""):
     """Open a file picker dialog and scan the selected file on VirusTotal."""
     try:
@@ -228,7 +227,6 @@ def vt_pick_and_scan_file(api_key=""):
         return {"error": str(e)}
 
 
-@eel.expose
 def vt_scan_file(filepath, api_key=""):
     """Upload a file to VirusTotal for scanning. Returns scan results or ID."""
     try:
@@ -268,7 +266,7 @@ def vt_scan_file(filepath, api_key=""):
         return {"error": str(e)}
 
 
-@eel.expose
+@ui_bridge.expose
 def vt_check_hash(hash_val, api_key=""):
     """Look up a file hash on VirusTotal."""
     try:
@@ -310,7 +308,7 @@ def vt_check_hash(hash_val, api_key=""):
 
 # ==================== SUMMARY / EXPORT ====================
 
-@eel.expose
+@ui_bridge.expose
 def generate_summary(scan_data, programs_data=None, network_data=None):
     """Build a structured summary report from scan data with multi-page support."""
     return build_summary(scan_data, programs_data, network_data)
@@ -318,7 +316,7 @@ def generate_summary(scan_data, programs_data=None, network_data=None):
 
 # ==================== SYSTEM OPERATIONS ====================
 
-@eel.expose
+@ui_bridge.expose
 def open_apps_settings():
     """Open Windows Apps & Features settings."""
     try:
@@ -328,7 +326,7 @@ def open_apps_settings():
         return {"status": "error", "message": str(e)}
 
 
-@eel.expose
+@ui_bridge.expose
 def open_windows_features():
     """Open 'Turn Windows features on or off' dialog."""
     try:
@@ -338,7 +336,7 @@ def open_windows_features():
         return {"status": "error", "message": str(e)}
 
 
-@eel.expose
+@ui_bridge.expose
 def open_windows_update():
     """Open Windows Update settings."""
     try:
@@ -348,7 +346,7 @@ def open_windows_update():
         return {"status": "error", "message": str(e)}
 
 
-@eel.expose
+@ui_bridge.expose
 def open_power_options():
     """Open classic Windows Power Options for power plan selection."""
     try:
@@ -358,7 +356,7 @@ def open_power_options():
         return {"status": "error", "message": str(e)}
 
 
-@eel.expose
+@ui_bridge.expose
 def open_uac_settings():
     """Open UAC (User Account Control) settings dialog."""
     try:
@@ -368,7 +366,7 @@ def open_uac_settings():
         return {"status": "error", "message": str(e)}
 
 
-@eel.expose
+@ui_bridge.expose
 def open_netplwiz():
     """Open netplwiz (manage user accounts and auto-login)."""
     try:
@@ -378,7 +376,7 @@ def open_netplwiz():
         return {"status": "error", "message": str(e)}
 
 
-@eel.expose
+@ui_bridge.expose
 def open_computer_management():
     """Open Computer Management (manage local users and groups)."""
     try:
@@ -388,7 +386,7 @@ def open_computer_management():
         return {"status": "error", "message": str(e)}
 
 
-@eel.expose
+@ui_bridge.expose
 def open_ms_settings(page):
     """Open a specific Windows Settings page or security tool by key name."""
     _DESTINATIONS = {
@@ -416,25 +414,25 @@ def open_ms_settings(page):
         return {"status": "error", "message": str(e)}
 
 
-@eel.expose
+@ui_bridge.expose
 def uninstall_program(program_name):
     """Run a program's registered uninstaller by display-name match."""
     return launch_uninstaller(program_name)
 
 
-@eel.expose
+@ui_bridge.expose
 def network_refresh():
     """Release and renew IP configuration on the default adapter."""
     return refresh_network_config()
 
 
-@eel.expose
+@ui_bridge.expose
 def network_reset():
     """Reset the main network adapter (disable then re-enable)."""
     return reset_network_adapter()
 
 
-@eel.expose
+@ui_bridge.expose
 def get_system_language():
     """Detect the system display language and installed language packs."""
     try:
@@ -459,7 +457,7 @@ def get_system_language():
         return {"code": "", "display": "", "installed": []}
 
 
-@eel.expose
+@ui_bridge.expose
 def open_browser_update(browser_name):
     """Launch a browser update/about page via core.browser_scan."""
     return open_browser_update_logic(browser_name)
@@ -582,51 +580,10 @@ def _apply_titlebar_color(use_dark=False):
         pass
 
 
-@eel.expose
+@ui_bridge.expose
 def set_titlebar_theme(use_dark):
     """Called from JS theme toggle to keep the Windows title bar in sync."""
     _apply_titlebar_color(use_dark=bool(use_dark))
-
-
-def _make_api_method(target_name):
-    def _method(self, *args, **kwargs):
-        return globals()[target_name](*args, **kwargs)
-
-    _method.__name__ = target_name
-    return _method
-
-
-class SystemShieldApi:
-    pass
-
-
-for _api_name in (
-    "get_app_info",
-    "check_for_updates",
-    "perform_scan",
-    "get_programs",
-    "check_browser_version",
-    "get_network_info",
-    "vt_pick_and_scan_file",
-    "vt_scan_file",
-    "vt_check_hash",
-    "generate_summary",
-    "open_apps_settings",
-    "open_windows_features",
-    "open_windows_update",
-    "open_power_options",
-    "open_uac_settings",
-    "open_netplwiz",
-    "open_computer_management",
-    "open_ms_settings",
-    "uninstall_program",
-    "network_refresh",
-    "network_reset",
-    "get_system_language",
-    "open_browser_update",
-    "set_titlebar_theme",
-):
-    setattr(SystemShieldApi, _api_name, _make_api_method(_api_name))
 
 
 def _startup_titlebar():
@@ -638,9 +595,9 @@ def _startup_titlebar():
 
 
 threading.Thread(target=_startup_titlebar, daemon=True).start()
-eel.set_api(SystemShieldApi())
+ui_bridge.set_api(ui_bridge.build_api())
 
-eel.start(
+ui_bridge.start(
     'index.html',
     size=(1460, 800),
 )
