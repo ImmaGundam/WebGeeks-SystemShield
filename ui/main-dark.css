@@ -1,0 +1,71 @@
+/* main-dark.css - shared dark theme styles
+   Purpose: Define global dark theme tokens and shared dark-mode overrides. */
+
+body.dark{
+  --bg:#161a22;
+  --card-bg:#1a1d23;
+  --text:#f1f5f9;
+  --muted:#b0bec5;
+  --border:#2d3748;
+  --primary-light:#1e293b;
+  --risk-bg:#5c282e;
+  --risk-border:#682020;
+  --sug-bg:#3a3013;
+  --sug-border:#7c5d10;
+  --sug-text:#fbbf24;
+  --good-bg:#16351f;
+  --good-text:#86efac;
+  --info-bg:#10243d;
+  --info-border:#224572;
+  --info-text:#dbeafe;
+  --bs-body-color:#f1f5f9;
+  --bs-heading-color:#f8fafc;
+  --bs-emphasis-color:#f8fafc;
+  --bs-secondary-color:#c2d1e6;
+  --bs-link-color:#60a5fa;
+  --bs-link-hover-color:#93c5fd;
+}
+
+body.dark .sidebar{background:#111827}
+body.dark .card{box-shadow:0 1px 3px rgba(0,0,0,.25),0 1px 2px rgba(0,0,0,.18)}
+body.dark .search-bar,
+body.dark .form-control,
+body.dark .form-select,
+body.dark .scroll-list,
+body.dark .security-item,
+body.dark .soft-row,
+body.dark .soft-bubble .d-flex.justify-content-between.align-items-center.small.py-1,
+body.dark .soft-bubble .text-success.small.py-1{
+  border-color:var(--border);
+  background:#1e2128;
+  color:var(--text);
+}
+body.dark .text-muted{color:#dee4e7!important}
+body.dark .small{color:var(--text)}
+body.dark h1,
+body.dark h2,
+body.dark h3,
+body.dark h4,
+body.dark h5,
+body.dark h6,
+body.dark p,
+body.dark span,
+body.dark label,
+body.dark .value,
+body.dark .fw-bold{color:var(--text)}
+body.dark .text-danger{color:#f87171!important}
+body.dark .text-success{color:#4ade80!important}
+body.dark .text-warning{color:#fcd34d!important}
+body.dark .text-primary{color:#60a5fa!important}
+body.dark .text-suggestion{color:var(--sug-text)!important}
+body.dark a{color:#60a5fa}
+body.dark a:hover{color:#93c5fd}
+body.dark .bg-bad{background:var(--risk-bg);color:#fca5a5}
+body.dark .bg-info-subtle{background:#162d4a;color:#7eb0e0}
+body.dark .form-select option{background:#1a1d23}
+body.dark .hint-icon .hint-popup{background:#0c0e12}
+body.dark .summary-modal{background:var(--card-bg);color:var(--text)}
+body.dark .lang-warning{border-color:#5c4d1a;background:#2d1010;color:#d4a54a}
+body.dark .alert{border-color:var(--border);background:#34171a;color:var(--text)}
+body.dark .btn-outline-light{border-color:var(--border);color:var(--muted)}
+body.dark .btn-close{filter:invert(1) grayscale(100%) brightness(200%)}

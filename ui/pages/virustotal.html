@@ -1,0 +1,78 @@
+        <!-- VIRUSTOTAL -->
+        <div id="page-virustotal" class="page-section">
+            <header class="vt-page-header mb-3">
+                <div>
+                    <h2 class="fw-bold mb-1"><i class="bi bi-search icon-blue"></i>VirusTotal</h2>
+                    <p class="text-muted small mb-0">Optional file and hash lookup using your own VirusTotal API key.</p>
+                </div>
+                <div class="vt-header-actions">
+                    <button onclick="window.open('https://www.virustotal.com/gui/my-apikey','_blank')" class="btn btn-sm btn-outline-primary"><i class="bi bi-key me-1"></i>API Key</button>
+                    <button onclick="window.open('https://docs.virustotal.com/reference/overview','_blank')" class="btn btn-sm btn-outline-primary"><i class="bi bi-journal-text me-1"></i>API Docs</button>
+                </div>
+            </header>
+
+            <div class="vt-layout vt-layout-stacked">
+                <div class="card compact-card vt-main-card">
+                    <div class="vt-card-title"><i class="bi bi-shield-check icon-blue"></i>Lookup Console</div>
+                    <p class="small text-muted mb-3">Use hash lookup when possible. File scan is available when a local file needs to be checked against VirusTotal.</p>
+
+                    <div class="vt-console-row">
+                        <div class="vt-api-panel">
+                            <div class="vt-section-label"><i class="bi bi-key me-1"></i>API Key</div>
+                            <div class="vt-api-row vt-api-row-session">
+                                <input type="password" id="vt-api-key" class="form-control form-control-sm" placeholder="Enter your VirusTotal API key for this session">
+                            </div>
+                            <div id="vt-key-status" class="small text-muted mt-1"><i class="bi bi-shield-lock me-1"></i>API key is used only for this lookup session and is not saved by SystemShield.</div>
+                        </div>
+
+                        <div class="vt-action-card">
+                            <div class="vt-action-title"><i class="bi bi-file-earmark icon-blue"></i>Scan File</div>
+                            <p class="small text-muted mb-2">Select a file and submit it through VirusTotal for analysis.</p>
+                            <button onclick="vtPickAndScanFile()" class="btn btn-sm btn-primary w-100"><i class="bi bi-folder2-open me-1"></i>Browse &amp; Scan</button>
+                        </div>
+
+                        <div class="vt-action-card">
+                            <div class="vt-action-title"><i class="bi bi-hash icon-blue"></i>Check Hash</div>
+                            <p class="small text-muted mb-2">Look up SHA-256, SHA-1, or MD5 without selecting the original file.</p>
+                            <input type="text" id="vt-hash-input" class="form-control form-control-sm mb-2" placeholder="SHA-256 / MD5 / SHA-1">
+                            <button onclick="vtCheckHash()" class="btn btn-sm btn-primary w-100">Look Up</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vt-info-grid">
+                    <div class="card compact-card vt-notice-card">
+                        <div class="vt-card-title"><i class="bi bi-info-circle icon-blue"></i>Service Notice</div>
+                        <div class="vt-note-list">
+                            <div><strong>Third-party service:</strong> SystemShield is not affiliated with or endorsed by VirusTotal.</div>
+                            <div><strong>Use your own key:</strong> VirusTotal API usage is controlled by your VirusTotal account and API terms.</div>
+                            <div><strong>File privacy:</strong> Do not upload private, confidential, or sensitive files unless you are permitted to share them.</div>
+                            <div><strong>Preferred flow:</strong> Check a hash first when you only need to know whether the file is already known.</div>
+                        </div>
+                    </div>
+
+                    <div class="card compact-card vt-links-card">
+                        <div class="vt-card-title"><i class="bi bi-link-45deg icon-blue"></i>Trusted References</div>
+                        <div class="vt-reference-grid">
+                            <button onclick="window.open('https://docs.virustotal.com/reference/overview','_blank')" class="vt-ref-btn"><i class="bi bi-journal-text"></i><span>API Reference</span></button>
+                            <button onclick="window.open('https://docs.virustotal.com/docs/api-overview','_blank')" class="vt-ref-btn"><i class="bi bi-diagram-3"></i><span>API Overview</span></button>
+                            <button onclick="window.open('https://cloud.google.com/terms/secops','_blank')" class="vt-ref-btn"><i class="bi bi-file-text"></i><span>Terms</span></button>
+                            <button onclick="window.open('https://cloud.google.com/terms/secops/privacy-notice','_blank')" class="vt-ref-btn"><i class="bi bi-shield-lock"></i><span>Privacy</span></button>
+                            <button onclick="window.open('https://docs.virustotal.com/docs/accidental-upload','_blank')" class="vt-ref-btn vt-ref-wide"><i class="bi bi-exclamation-triangle"></i><span>Accidental Upload Help</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="vt-results" class="vt-results-area" style="display:none;"></div>
+
+            <div id="vt-result-overlay" class="vt-result-overlay" style="display:none;" onclick="if(event.target===this)closeVTPopup()">
+                <div class="vt-result-window" role="dialog" aria-modal="true" aria-labelledby="vt-result-window-title">
+                    <div class="vt-result-window-header">
+                        <div class="vt-result-window-title"><i class="bi bi-search icon-blue"></i><span id="vt-result-window-title">VirusTotal Result</span></div>
+                        <button class="vt-result-window-close" onclick="closeVTPopup()" title="Close" aria-label="Close VirusTotal result">&times;</button>
+                    </div>
+                    <div id="vt-result-window-body" class="vt-result-window-body"></div>
+                </div>
+            </div>
+        </div>

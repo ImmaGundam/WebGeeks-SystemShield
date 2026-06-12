@@ -1,0 +1,107 @@
+/* network.css - network security page styles
+   Purpose: Style network scan controls, connection summaries, adapters, and alerts. */
+
+#page-network.active{display:block}
+.network-page-layout{display:flex;flex-direction:column;gap:10px;width:100%}
+.network-overview-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr);
+  gap:10px;
+  align-items:stretch;
+}
+.network-overview-card,
+.network-wide-card{margin-bottom:0}
+.network-main-title{
+  margin-bottom:6px;
+  overflow:hidden;
+  color:var(--text);
+  font-size:.9rem;
+  font-weight:800;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.network-status-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.network-kv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 10px}
+.network-inline-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:6px 10px}
+.net-kv{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  min-width:0;
+  padding:6px 8px;
+  border:1px solid var(--border);
+  border-radius:7px;
+  background:#f8fafc;
+  font-size:.76rem;
+}
+.net-k{color:var(--muted);font-weight:800;white-space:nowrap}
+.net-v{min-width:0;overflow:hidden;text-align:right;text-overflow:ellipsis;white-space:nowrap}
+.network-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.network-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  padding:3px 8px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background:#f8fafc;
+  color:var(--text);
+  font-size:.68rem;
+  font-weight:800;
+}
+.network-section-heading{margin:2px 0 -2px;color:var(--muted);font-size:.78rem;font-weight:900;letter-spacing:.04em;text-transform:uppercase}
+.network-adapter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;align-items:start}
+.network-adapter-card{position:relative;min-height:44px;margin-bottom:0;padding:9px 10px!important}
+.network-adapter-card .section-title{min-height:22px;margin-bottom:0;padding-right:26px;font-size:.76rem}
+.network-adapter-card:not(.minimized) .section-title{margin-bottom:8px}
+.network-card-title{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.network-adapter-name{max-width:100%;overflow:hidden;font-weight:900;text-overflow:ellipsis;white-space:nowrap}
+.network-muted-inline{color:var(--muted);font-size:.68rem;font-weight:600}
+.network-mini-alert{margin-bottom:0!important;padding:6px 8px!important;font-size:.72rem}
+.net-section{position:relative}
+.net-section .minimize-btn{
+  position:absolute;
+  top:12px;
+  right:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:20px;
+  height:20px;
+  padding:0;
+  border:1px solid var(--border);
+  border-radius:4px;
+  background:transparent;
+  color:var(--muted);
+  cursor:pointer;
+  font-size:.7rem;
+  line-height:1;
+}
+.net-section.minimized > *:not(.section-title):not(.minimize-btn){display:none!important}
+.network-ipv4-inline{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  min-width:0;
+  padding:3px 7px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  color:var(--text);
+  font-size:.68rem;
+}
+.network-ipv4-inline strong{color:var(--muted)}
+.network-ipv4-inline.muted{color:var(--muted)}
+
+body.dark .net-kv,
+body.dark .network-chip,
+body.dark .network-ipv4-inline{background:#1e2128;border-color:var(--border)}
+
+@media(max-width:1050px){
+  .network-overview-grid{grid-template-columns:1fr}
+}
+@media(max-width:720px){
+  #page-network .d-flex.justify-content-between.align-items-center.mb-3{align-items:flex-start!important;flex-direction:column}
+  .network-kv-grid{grid-template-columns:1fr}
+  .network-adapter-grid{grid-template-columns:1fr}
+}
