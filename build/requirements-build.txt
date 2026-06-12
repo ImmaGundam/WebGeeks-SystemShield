@@ -1,6 +1,0 @@
-pywebview
-psutil
-httpx
-aiohttp
-pyinstaller
-pywin32; platform_system == "Windows"
