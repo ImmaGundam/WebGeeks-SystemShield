@@ -1,17 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WebGeeks SystemShield v1.3.2</title>
+    <title>WebGeeks SystemShield</title>
+    <meta name="application-name" content="SystemShield">
     <meta name="theme-color" content="#252d3a">
+    <meta name="msapplication-TileColor" content="#252d3a">
+    <meta name="msapplication-TileImage" content="favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="text/javascript" src="/eel.js"></script>
+    <script type="text/javascript" src="bridge.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="icon" type="image/x-icon" href="data/icon.ico">
-    <link rel="shortcut icon" href="data/icon.ico">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="main-dark.css">
+    <link rel="stylesheet" href="pages/dashboard.css">
+    <link rel="stylesheet" href="pages/sysinfo.css">
+    <link rel="stylesheet" href="pages/programs.css">
+    <link rel="stylesheet" href="pages/network.css">
+    <link rel="stylesheet" href="pages/remediation.css">
+    <link rel="stylesheet" href="pages/virustotal.css">
+    <link rel="stylesheet" href="pages/about.css">
 </head>
 <body>
     <div id="sidebar-backdrop" class="sidebar-backdrop" onclick="toggleSidebar()"></div>
@@ -20,9 +32,9 @@
             <span class="brand-label">SystemShield</span>
             <button class="sidebar-toggle-btn ms-auto" onclick="toggleSidebar()" title="Toggle menu" aria-label="Toggle navigation"><i class="bi bi-list"></i></button>
         </div>
-        <div class="sidebar-icon-anchor"><img src="data/logo.png" class="sidebar-icon-logo" alt="SystemShield Logo"></div>
         <div class="nav flex-column" style="flex:1;">
             <div id="nav-scan" class="nav-link active" onclick="showPage('scan')"><i class="bi bi-speedometer2"></i><span class="nav-text"> Dashboard</span></div>
+            <div id="nav-system" class="nav-link" onclick="showPage('system')"><i class="bi bi-pc-display-horizontal"></i><span class="nav-text"> System Information</span></div>
             <div id="nav-programs" class="nav-link" onclick="showPage('programs')"><i class="bi bi-box"></i><span class="nav-text"> Apps &amp; Programs</span></div>
             <div id="nav-network" class="nav-link" onclick="showPage('network')"><i class="bi bi-wifi"></i><span class="nav-text"> Network Security</span></div>
             <div id="nav-remediation" class="nav-link" onclick="showPage('remediation')"><i class="bi bi-clipboard2-pulse"></i><span class="nav-text"> Remediation</span></div>
@@ -32,7 +44,6 @@
         </div>
         <div class="lang-selector" id="lang-selector-area" style="display:none;"><i class="bi bi-globe2"></i><select id="lang-select" onchange="changeLanguage(this.value)" title="Language"></select></div>
         <div class="sidebar-bottom">
-            <div class="sidebar-bottom-logo-wrap"><img src="data/logo.png" class="sidebar-bottom-logo" alt="SystemShield Logo"></div>
             <button onclick="runScan()" class="btn btn-primary mb-2 w-100 btn-sm sidebar-scan-btn" title="Start New Scan"><i class="bi bi-play-fill sidebar-btn-icon"></i><span class="sidebar-full-only"> Start New Scan</span></button>
             <button onclick="showSummary()" class="btn btn-outline-light mb-1 w-100 btn-sm sidebar-export-btn" style="font-size:.75rem;" title="Export / Summary"><i class="bi bi-file-earmark-text sidebar-btn-icon"></i><span class="sidebar-full-only"> Export / Summary</span></button>
         </div>
@@ -40,297 +51,13 @@
 
     <div class="main-content">
         <div id="lang-warning-box"></div>
-        <!-- DASHBOARD -->
-        <div id="page-scan" class="page-section active">
-            <div class="header-row">
-                <div class="header-left">
-                    <h4 id="welcome-msg" class="fw-bold mb-0">Welcome,</h4>
-                    <p id="risk-msg" class="text-muted mt-0 mb-1" style="font-size:.85rem;">Ready to scan your system.</p>
-                    <div id="hardware-header" class="hardware-info"></div>
-                </div>
-                <div id="risk-wheel-wrapper" class="risk-wheel-container" style="display:none;">
-                    <canvas id="riskChart"></canvas>
-                    <div class="risk-center-text"><div id="risk-number" class="number">0</div><div class="label">Issues</div></div>
-                </div>
-            </div>
-            <div id="risk-alerts-box"></div>
-            <div id="remediation-box"></div>
-            <div id="report-content" class="row g-2 dashboard-grid"><div class="dashboard-full text-center py-5"><p class="text-muted">Analysis results will appear here after scanning.</p></div></div>
-        </div>
-
-        <!-- APPS & PROGRAMS -->
-        <div id="page-programs" class="page-section programs-page">
-            <div class="d-flex justify-content-between align-items-center mb-2 programs-header-row">
-                <h2 class="fw-bold mb-0"><i class="bi bi-box icon-blue"></i>Apps &amp; Programs</h2>
-                <div class="d-flex gap-2 align-items-center programs-search-row">
-                    <input type="text" id="prog-search" class="search-bar" placeholder="Search programs..." oninput="filterPrograms()">
-                    <select id="prog-sort" onchange="sortPrograms(this.value)" class="form-select form-select-sm" style="width:auto;font-size:.75rem;">
-                        <option value="name-asc">Name &#8593;</option><option value="name-desc">Name &#8595;</option>
-                        <option value="size-desc">Size &#8595;</option><option value="size-asc">Size &#8593;</option>
-                    </select>
-                    <button id="prog-scan-btn" onclick="loadPrograms()" class="btn btn-sm btn-primary"><i class="bi bi-search me-1"></i>Scan</button>
-                    <button onclick="eel.open_apps_settings()()" class="btn btn-sm btn-outline-primary programs-header-action"><i class="bi bi-gear me-1"></i>Apps</button>
-                    <button onclick="eel.open_windows_features()()" class="btn btn-sm btn-outline-primary programs-header-action"><i class="bi bi-toggles me-1"></i>Features</button>
-                </div>
-            </div>
-            <div id="programs-storage-section"></div>
-            <div class="icon-legend programs-icon-legend">
-                <span><i class="bi bi-person-fill" style="color:#3730a3;"></i> User &mdash; User-installed app</span>
-                <span><i class="bi bi-windows" style="color:#1e40af;"></i> Windows &mdash; System component</span>
-                <span><i class="bi bi-bag-fill" style="color:#065f46;"></i> Store &mdash; Microsoft Store app</span>
-                <label class="programs-pdf-export-option" title="Controls the Apps & Programs section in Export / Summary. Off uses the top 30 programs in the current sort order; on includes all detected programs in the current sort order.">
-                    <input type="checkbox" id="prog-pdf-all" onchange="setProgramPdfMode(this.checked)">
-                    <span>PDF: All apps</span>
-                    <small>Top 30 when off</small>
-                </label>
-            </div>
-            <div id="bad-software-section"></div>
-            <div class="card compact-card programs-window-card">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span id="prog-count-label" class="section-title mb-0">Programs</span>
-                    <span id="prog-size-label" class="text-muted small"></span>
-                </div>
-                <div id="programList" class="scroll-list programs-scroll-list"><p class="text-muted text-center py-3">Click "Scan" to load programs.</p></div>
-                <div id="size-breakdown-area" class="mt-2" style="display:none;"></div>
-            </div>
-        </div>
-
-        <!-- NETWORK SECURITY -->
-        <div id="page-network" class="page-section">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="d-flex align-items-center gap-3"><h2 class="fw-bold mb-0"><i class="bi bi-wifi icon-blue"></i>Network Security</h2><div id="net-vpn-bar"></div></div>
-                <div class="d-flex gap-2">
-                    <button onclick="doNetworkRefresh()" class="btn btn-sm btn-outline-primary" title="Release and renew IP"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>
-                    <button onclick="doNetworkReset()" class="btn btn-sm btn-outline-warning" title="Disable and re-enable main adapter"><i class="bi bi-arrow-repeat me-1"></i>Reset</button>
-                    <button onclick="loadNetwork()" class="btn btn-sm btn-primary"><i class="bi bi-search me-1"></i>Scan Network</button>
-                </div>
-            </div>
-            <div id="net-top-alerts"></div>
-            <div id="net-dns-alerts"></div>
-            <div class="row g-2" id="network-content"><div class="col-12 text-center py-5"><p class="text-muted">Click "Scan Network" to analyze your network configuration.</p></div></div>
-        </div>
-
-
-
-        <!-- REMEDIATION ANALYSIS -->
-        <div id="page-remediation" class="page-section">
-            <div class="remediation-page-head mb-3">
-                <div class="remediation-title-block">
-                    <h2 class="fw-bold mb-1"><i class="bi bi-clipboard2-pulse icon-blue"></i>Remediation Analysis</h2>
-                    <p class="small text-muted mb-0" style="max-width:760px;">Detailed breakdown of scan findings, evidence, secure baseline comparison, and Windows-based remediation guidance.</p>
-                </div>
-                <div class="remediation-top-actions">
-                    <button id="remediation-refresh-btn" onclick="refreshRemediationPage()" class="btn btn-sm btn-outline-primary" style="display:none;"><i class="bi bi-arrow-clockwise me-1"></i>Refresh Page</button>
-                    <button onclick="eel.open_apps_settings()()" class="btn btn-sm btn-outline-secondary"><i class="bi bi-box-arrow-up-right me-1"></i>Apps Settings</button>
-                    <button onclick="eel.open_ms_settings('defender')()" class="btn btn-sm btn-outline-secondary"><i class="bi bi-shield-check me-1"></i>Windows Security</button>
-                </div>
-            </div>
-            <div id="remediation-profile-status" class="mb-2"></div>
-            <div id="remediation-profile-content">
-                <div class="card compact-card remediation-empty text-center py-5">
-                    <i class="bi bi-clipboard2-data remediation-empty-icon"></i>
-                    <h5 class="fw-bold mt-2">No scan profile loaded</h5>
-                    <p class="small text-muted mb-3">Run a system scan first. SystemShield will use the collected values to build this remediation profile.</p>
-                    <button onclick="runScan()" class="btn btn-sm btn-primary mx-auto"><i class="bi bi-play-fill me-1"></i>Run Scan</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- VIRUSTOTAL -->
-        <div id="page-virustotal" class="page-section">
-            <header class="vt-page-header mb-3">
-                <div>
-                    <h2 class="fw-bold mb-1"><i class="bi bi-search icon-blue"></i>VirusTotal</h2>
-                    <p class="text-muted small mb-0">Optional file and hash lookup using your own VirusTotal API key.</p>
-                </div>
-                <div class="vt-header-actions">
-                    <button onclick="window.open('https://www.virustotal.com/gui/my-apikey','_blank')" class="btn btn-sm btn-outline-primary"><i class="bi bi-key me-1"></i>API Key</button>
-                    <button onclick="window.open('https://docs.virustotal.com/reference/overview','_blank')" class="btn btn-sm btn-outline-primary"><i class="bi bi-journal-text me-1"></i>API Docs</button>
-                </div>
-            </header>
-
-            <div class="vt-layout vt-layout-stacked">
-                <div class="card compact-card vt-main-card">
-                    <div class="vt-card-title"><i class="bi bi-shield-check icon-blue"></i>Lookup Console</div>
-                    <p class="small text-muted mb-3">Use hash lookup when possible. File scan is available when a local file needs to be checked against VirusTotal.</p>
-
-                    <div class="vt-console-row">
-                        <div class="vt-api-panel">
-                            <div class="vt-section-label"><i class="bi bi-key me-1"></i>API Key</div>
-                            <div class="vt-api-row vt-api-row-session">
-                                <input type="password" id="vt-api-key" class="form-control form-control-sm" placeholder="Enter your VirusTotal API key for this session">
-                            </div>
-                            <div id="vt-key-status" class="small text-muted mt-1"><i class="bi bi-shield-lock me-1"></i>API key is used only for this lookup session and is not saved by SystemShield.</div>
-                        </div>
-
-                        <div class="vt-action-card">
-                            <div class="vt-action-title"><i class="bi bi-file-earmark icon-blue"></i>Scan File</div>
-                            <p class="small text-muted mb-2">Select a file and submit it through VirusTotal for analysis.</p>
-                            <button onclick="vtPickAndScanFile()" class="btn btn-sm btn-primary w-100"><i class="bi bi-folder2-open me-1"></i>Browse &amp; Scan</button>
-                        </div>
-
-                        <div class="vt-action-card">
-                            <div class="vt-action-title"><i class="bi bi-hash icon-blue"></i>Check Hash</div>
-                            <p class="small text-muted mb-2">Look up SHA-256, SHA-1, or MD5 without selecting the original file.</p>
-                            <input type="text" id="vt-hash-input" class="form-control form-control-sm mb-2" placeholder="SHA-256 / MD5 / SHA-1">
-                            <button onclick="vtCheckHash()" class="btn btn-sm btn-primary w-100">Look Up</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="vt-info-grid">
-                    <div class="card compact-card vt-notice-card">
-                        <div class="vt-card-title"><i class="bi bi-info-circle icon-blue"></i>Service Notice</div>
-                        <div class="vt-note-list">
-                            <div><strong>Third-party service:</strong> SystemShield is not affiliated with or endorsed by VirusTotal.</div>
-                            <div><strong>Use your own key:</strong> VirusTotal API usage is controlled by your VirusTotal account and API terms.</div>
-                            <div><strong>File privacy:</strong> Do not upload private, confidential, or sensitive files unless you are permitted to share them.</div>
-                            <div><strong>Preferred flow:</strong> Check a hash first when you only need to know whether the file is already known.</div>
-                        </div>
-                    </div>
-
-                    <div class="card compact-card vt-links-card">
-                        <div class="vt-card-title"><i class="bi bi-link-45deg icon-blue"></i>Trusted References</div>
-                        <div class="vt-reference-grid">
-                            <button onclick="window.open('https://docs.virustotal.com/reference/overview','_blank')" class="vt-ref-btn"><i class="bi bi-journal-text"></i><span>API Reference</span></button>
-                            <button onclick="window.open('https://docs.virustotal.com/docs/api-overview','_blank')" class="vt-ref-btn"><i class="bi bi-diagram-3"></i><span>API Overview</span></button>
-                            <button onclick="window.open('https://cloud.google.com/terms/secops','_blank')" class="vt-ref-btn"><i class="bi bi-file-text"></i><span>Terms</span></button>
-                            <button onclick="window.open('https://cloud.google.com/terms/secops/privacy-notice','_blank')" class="vt-ref-btn"><i class="bi bi-shield-lock"></i><span>Privacy</span></button>
-                            <button onclick="window.open('https://docs.virustotal.com/docs/accidental-upload','_blank')" class="vt-ref-btn vt-ref-wide"><i class="bi bi-exclamation-triangle"></i><span>Accidental Upload Help</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="vt-results" class="vt-results-area" style="display:none;"></div>
-
-            <div id="vt-result-overlay" class="vt-result-overlay" style="display:none;" onclick="if(event.target===this)closeVTPopup()">
-                <div class="vt-result-window" role="dialog" aria-modal="true" aria-labelledby="vt-result-window-title">
-                    <div class="vt-result-window-header">
-                        <div class="vt-result-window-title"><i class="bi bi-search icon-blue"></i><span id="vt-result-window-title">VirusTotal Result</span></div>
-                        <button class="vt-result-window-close" onclick="closeVTPopup()" title="Close" aria-label="Close VirusTotal result">&times;</button>
-                    </div>
-                    <div id="vt-result-window-body" class="vt-result-window-body"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ABOUT -->
-        <div id="page-about" class="page-section">
-            <header class="about-header mb-3">
-                <div>
-                    <h2 class="fw-bold mb-1"><i class="bi bi-info-circle icon-blue"></i>About</h2>
-                    <p class="text-muted small mb-0">Project information, version status, support links, and trusted documentation references.</p>
-                </div>
-            </header>
-
-            <div class="about-layout">
-                <div class="card compact-card about-hero-card">
-                    <div class="about-hero-main">
-                        <span class="about-logo-hover" data-tooltip="Icon design was inspired by my personal desktop. I drew a simple sketch, gave AI a picture of it, and viola."><img src="data\logo.png" class="about-logo" alt="SystemShield Logo" title="Icon design was inspired by my personal desktop. I drew a simple sketch, gave AI a picture of it, and viola." aria-label="Icon design was inspired by my personal desktop. I drew a simple sketch, gave AI a picture of it, and viola."></span>
-                        <div class="about-title-block">
-                            <h4 class="fw-bold mb-1">WebGeeks SystemShield</h4>
-                            <div class="small text-muted mb-2">Windows security auditing and remediation guidance</div>
-                            <div class="about-version-line">
-                                <span class="about-version-label">Program Version:</span>
-                                <span class="about-version-value" id="app-version-text">v1.3.2</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="about-status-card about-status-embedded">
-                                        <div class="section-title"><i class="bi bi-arrow-repeat icon-blue"></i>Version & Updates</div>
-                                        <div class="about-status-row">
-                                            <span>Current</span>
-                                            <strong id="about-current-version" class="about-status-value current neutral">v1.3.2</strong>
-                                        </div>
-                                        <div class="about-status-row">
-                                            <span>Latest</span>
-                                            <strong id="about-latest-version" class="about-status-value latest neutral">Not checked</strong>
-                                        </div>
-                                        <div class="d-flex gap-2 mt-2 flex-wrap">
-                                            <button id="updateBtn" onclick="checkUpdate()" class="btn btn-sm btn-primary">
-                                                <i class="bi bi-arrow-clockwise me-1"></i>Check for Updates
-                                            </button>
-                                            <button onclick="window.open('https://github.com/ImmaGundam/WebGeeks-SystemShield/releases/latest','_blank')" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-box-arrow-up-right me-1"></i>Open Releases
-                                            </button>
-                                        </div>
-                                    </div>
-                    <p class="about-copy">
-                        SystemShield is a free Windows-focused security auditing tool. It reviews system settings,
-                        installed software, browser versions, network configuration, and security features, then
-                        presents clear findings and Windows-based remediation guidance.
-                    </p>
-                    <p class="small text-muted mb-2 mt-2 about-policy-note">
-                        SystemShield does not remove files directly. Software actions use Windows-registered
-                        uninstall entries or Windows Settings shortcuts.
-                    </p>
-                    <div class="about-action-grid">
-                        <a href="https://systemshield.net/" target="_blank" class="about-action">
-                            <i class="bi bi-globe2"></i><span>Website</span>
-                        </a>
-                        <a href="https://github.com/ImmaGundam" target="_blank" class="about-action">
-                            <i class="bi bi-github"></i><span>GitHub</span>
-                        </a>
-                        <a href="https://github.com/sponsors/ImmaGundam" target="_blank" class="about-action support-link">
-                            <i class="bi bi-heart-fill"></i><span>Sponsor</span>
-                        </a>
-                        <a href="https://buymeacoffee.com/immagundam" target="_blank" class="about-action support-link">
-                            <i class="bi bi-cup-hot-fill"></i><span>Buy Coffee</span>
-                        </a>
-                    </div>
-                </div>
-
-
-
-                <div class="card compact-card about-docs-card">
-                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                        <div>
-                            <div class="section-title mb-1"><i class="bi bi-journal-text icon-blue"></i>Documentation & Trusted References</div>
-                            <p class="small text-muted mb-0">Sources used for user-facing guidance and detection context.</p>
-                        </div>
-                    </div>
-                    <div class="about-doc-grid">
-                        <a href="https://github.com/ImmaGundam/WebGeeks-SystemShield" target="_blank">
-                            <i class="bi bi-github"></i>
-                            <span><strong>SystemShield Documentation</strong><small>Project README, releases, and source notes.</small></span>
-                        </a>
-                        <a href="https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/windows-security-configuration-framework/windows-security-baselines" target="_blank">
-                            <i class="bi bi-microsoft"></i>
-                            <span><strong>Microsoft Security Baselines</strong><small>Baseline configuration guidance for Windows security posture.</small></span>
-                        </a>
-                        <a href="https://learn.microsoft.com/en-us/windows/apps/develop/launch/launch-settings" target="_blank">
-                            <i class="bi bi-windows"></i>
-                            <span><strong>Windows Settings Shortcuts</strong><small>Microsoft documentation for ms-settings links used by remediation buttons.</small></span>
-                        </a>
-                        <a href="https://learn.microsoft.com/en-us/windows/win32/msi/uninstall-registry-key" target="_blank">
-                            <i class="bi bi-box-arrow-right"></i>
-                            <span><strong>Windows Uninstall Registry</strong><small>Reference for DisplayName, Publisher, InstallLocation, and UninstallString values.</small></span>
-                        </a>
-                        <a href="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-service" target="_blank">
-                            <i class="bi bi-hdd-network"></i>
-                            <span><strong>Windows Service Detection</strong><small>Reference for service Name, DisplayName, PathName, State, and StartMode.</small></span>
-                        </a>
-                        <a href="https://learn.microsoft.com/en-us/defender-endpoint/detect-block-potentially-unwanted-apps-microsoft-defender-antivirus" target="_blank">
-                            <i class="bi bi-shield-exclamation"></i>
-                            <span><strong>Microsoft PUA Guidance</strong><small>Reference for potentially unwanted application behavior and classification.</small></span>
-                        </a>
-                        <a href="https://www.cisa.gov/news-events/alerts/2023/01/25/cisa-nsa-and-ms-isac-release-advisory-malicious-use-rmm-software" target="_blank">
-                            <i class="bi bi-building-lock"></i>
-                            <span><strong>CISA RMM Advisory</strong><small>Context for malicious use of legitimate remote monitoring tools.</small></span>
-                        </a>
-                        <a href="https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams" target="_blank">
-                            <i class="bi bi-telephone-x"></i>
-                            <span><strong>FTC Tech Support Scams</strong><small>Consumer guidance explaining remote-access abuse in scam scenarios.</small></span>
-                        </a>
-                        <a href="https://docs.virustotal.com/reference/overview" target="_blank">
-                            <i class="bi bi-search"></i>
-                            <span><strong>VirusTotal API Reference</strong><small>Reference for file and hash analysis used by the optional lookup page.</small></span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div data-page-fragment="pages/dashboard.html"></div>
+        <div data-page-fragment="pages/sysinfo.html"></div>
+        <div data-page-fragment="pages/programs.html"></div>
+        <div data-page-fragment="pages/network.html"></div>
+        <div data-page-fragment="pages/remediation.html"></div>
+        <div data-page-fragment="pages/virustotal.html"></div>
+        <div data-page-fragment="pages/about.html"></div>
     </div>
 
     <!-- Summary Modal -->
@@ -338,19 +65,58 @@
         <div class="summary-modal" id="summary-content"></div>
     </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 var riskChartInstance=null,lastScanData=null,programCache=[],programDataCache=null,networkData=null,systemLang={code:'',display:'',installed:[]},hardwareUptimeBaseSeconds=null,hardwareUptimeBaseTs=0,appPdfExportAll=false;
 var scanProfileState={system:false,software:false,network:false};
-var PAGES=['scan','programs','network','remediation','virustotal','about'];
+var PAGES=['scan','system','programs','network','remediation','virustotal','about'];
+/* PAGE FRAGMENTS */
+async function loadPageFragments(){
+    var placeholders=Array.prototype.slice.call(document.querySelectorAll('[data-page-fragment]'));
+    await Promise.all(placeholders.map(async function(node){
+        var path=node.getAttribute('data-page-fragment');
+        var response=await fetch(path,{cache:'no-cache'});
+        if(!response.ok)throw new Error('Unable to load '+path);
+        node.outerHTML=await response.text();
+    }));
+}
 document.body.classList.add('scan-view-active');
 
-// Disable right-click inside the app window.
 document.addEventListener('contextmenu',function(e){e.preventDefault();return false;},true);
+function isEditableSelectionTarget(target){
+    return !!(target&&target.closest&&target.closest('input,textarea,select,option,[contenteditable="true"],[contenteditable=""],.allow-text-select'));
+}
+function clearAccidentalSelection(){
+    try{
+        var selection=window.getSelection&&window.getSelection();
+        if(selection)selection.removeAllRanges();
+    }catch(e){}
+}
+document.addEventListener('selectstart',function(e){
+    if(!isEditableSelectionTarget(e.target))e.preventDefault();
+},true);
+document.addEventListener('dragstart',function(e){
+    if(!isEditableSelectionTarget(e.target))e.preventDefault();
+},true);
+document.addEventListener('dblclick',function(e){
+    if(isEditableSelectionTarget(e.target))return;
+    e.preventDefault();
+    clearAccidentalSelection();
+},true);
 
-function showPage(p){PAGES.forEach(function(pg){var el=document.getElementById('page-'+pg),nav=document.getElementById('nav-'+pg);if(el)el.classList.toggle('active',pg===p);if(nav)nav.classList.toggle('active',pg===p);});document.body.classList.toggle('programs-view-active',p==='programs');document.body.classList.toggle('scan-view-active',p==='scan');if(p==='remediation')renderRemediationPage();scheduleHoverTitles(document);}
+function showPage(p){
+    PAGES.forEach(function(pg){
+        var el=document.getElementById('page-'+pg),nav=document.getElementById('nav-'+pg);
+        if(el)el.classList.toggle('active',pg===p);
+        if(nav)nav.classList.toggle('active',pg===p);
+    });
+    document.body.classList.toggle('programs-view-active',p==='programs');
+    document.body.classList.toggle('scan-view-active',p==='scan');
+    if(p==='remediation')renderRemediationPage();
+    if(p==='system')renderSystemInfoPage();
+    scheduleHoverTitles(document);
+}
 
-// Progress bar handler - exposed to Python via Eel
-eel.expose(update_scan_progress);
+appBridge.expose(update_scan_progress);
 function update_scan_progress(message, progress) {
     var bar = document.getElementById('scan-progress-bar');
     var status = document.getElementById('scan-status');
@@ -359,7 +125,7 @@ function update_scan_progress(message, progress) {
 }
 
 /* LANGUAGE */
-async function initLanguage(){try{var lang=await eel.get_system_language()();systemLang=lang;var sel=document.getElementById('lang-select'),area=document.getElementById('lang-selector-area');if(lang.installed&&lang.installed.length>0){sel.innerHTML='';for(var i=0;i<lang.installed.length;i++){var opt=document.createElement('option');opt.value=lang.installed[i];opt.textContent=lang.installed[i];if(lang.code&&lang.installed[i].toLowerCase().startsWith(lang.code.toLowerCase().split('-')[0]))opt.selected=true;sel.appendChild(opt)}area.style.display='flex'}if(!lang.code&&!lang.display){document.getElementById('lang-warning-box').innerHTML='<div class="lang-warning"><i class="bi bi-exclamation-triangle me-1"></i>Could not detect your system language. Defaulting to English.</div>'}}catch(e){document.getElementById('lang-warning-box').innerHTML='<div class="lang-warning"><i class="bi bi-exclamation-triangle me-1"></i>Could not detect your system language. Defaulting to English.</div>'}}
+async function initLanguage(){try{var lang=await appBridge.get_system_language()();systemLang=lang;var sel=document.getElementById('lang-select'),area=document.getElementById('lang-selector-area');if(lang.installed&&lang.installed.length>0){sel.innerHTML='';for(var i=0;i<lang.installed.length;i++){var opt=document.createElement('option');opt.value=lang.installed[i];opt.textContent=lang.installed[i];if(lang.code&&lang.installed[i].toLowerCase().startsWith(lang.code.toLowerCase().split('-')[0]))opt.selected=true;sel.appendChild(opt)}area.style.display='flex'}if(!lang.code&&!lang.display){document.getElementById('lang-warning-box').innerHTML='<div class="lang-warning"><i class="bi bi-exclamation-triangle me-1"></i>Could not detect your system language. Defaulting to English.</div>'}}catch(e){document.getElementById('lang-warning-box').innerHTML='<div class="lang-warning"><i class="bi bi-exclamation-triangle me-1"></i>Could not detect your system language. Defaulting to English.</div>'}}
 function changeLanguage(c){}
 
 /* UPDATE */
@@ -394,7 +160,7 @@ async function checkUpdate(){
     if(detail)detail.textContent='Checking GitHub releases...';
     setAboutUpdateState('neutral');
     try{
-        var res=await eel.check_for_updates()();
+        var res=await appBridge.check_for_updates()();
         var current=res.current||res.version||'Unknown';
         var latest=res.latest||res.version||'Unknown';
         document.getElementById('about-current-version').textContent='v'+String(current).replace(/^v/i,'');
@@ -444,8 +210,9 @@ async function checkUpdate(){
 }
 async function initAppInfo(){
     try{
-        var info=await eel.get_app_info()();
-        var v='v'+String(info.version||'1.3.2').replace(/^v/i,'');
+        var info=await appBridge.get_app_info()();
+        var v='v'+String(info.version||'0.0.0').replace(/^v/i,'');
+        document.title='WebGeeks SystemShield '+v;
         ['app-version-text','about-current-version'].forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=v;});
     }catch(e){}
 }
@@ -469,6 +236,8 @@ function isHoverTitleCandidate(el){
     var tag=el.tagName.toUpperCase();
     if(['HTML','HEAD','BODY','SCRIPT','STYLE','META','LINK','INPUT','TEXTAREA','SELECT','OPTION','CANVAS','SVG','PATH','I'].indexOf(tag)>=0)return false;
     if(el.closest&&el.closest('.hint-popup'))return false;
+    if(el.classList&&el.classList.contains('hint-icon'))return false;
+    if(el.closest&&el.closest('.hint-icon'))return false;
     var text=hoverTitleText(el);
     if(!text||text.length<3||text.length>260)return false;
     var selector=[
@@ -543,10 +312,11 @@ function formatUptimeSeconds(seconds){
     return mins+' min';
 }
 function updateHardwareUptimeLive(){
-    var el=document.getElementById('hardware-uptime-live');
-    if(!el||hardwareUptimeBaseSeconds===null)return;
+    var els=document.querySelectorAll('.hardware-uptime-live');
+    if(!els.length||hardwareUptimeBaseSeconds===null)return;
     var elapsed=Math.floor((Date.now()-hardwareUptimeBaseTs)/1000);
-    el.textContent=formatUptimeSeconds(hardwareUptimeBaseSeconds+elapsed);
+    var text=formatUptimeSeconds(hardwareUptimeBaseSeconds+elapsed);
+    els.forEach(function(el){el.textContent=text;});
 }
 setInterval(updateHardwareUptimeLive,60000);
 
@@ -581,7 +351,9 @@ function toggleHardwarePanel(event){
     if(label)label.textContent=expanded?'Expand details':'Collapse details';
 }
 
-function renderHardwareHeader(data){
+function renderHardwarePanel(data,startExpanded,collapsible,mode){
+    collapsible=collapsible!==false;
+    mode=mode||'dashboard';
     var hp=data.hardware_profile||{};
     var processors=hp.processors||data.processors||[];
     var cpuItems=[];
@@ -695,21 +467,179 @@ function renderHardwareHeader(data){
         summaryChip('Memory',memBase,false)+
         summaryChip('Storage',storageSummary,true)+
         summaryChip('Power',powerName,false)+
-        '<span class="hardware-summary-chip"><strong>Uptime:</strong> <span id="hardware-uptime-live" class="hardware-uptime-chip'+uptimeClass+'">'+esc(uptimeText)+'</span></span>';
+        '<span class="hardware-summary-chip"><strong>Uptime:</strong> <span class="hardware-uptime-chip hardware-uptime-live'+uptimeClass+'">'+esc(uptimeText)+'</span></span>';
 
-    return '<div class="hardware-panel hardware-collapsible" data-expanded="false" onclick="toggleHardwarePanel(event)" role="button" tabindex="0" title="Click to expand or collapse hardware details.">'+
-        '<div class="hardware-panel-title"><span class="hardware-title-left"><i class="bi bi-pc-display-horizontal"></i><span>Hardware</span></span><span class="hardware-expand-label">Expand details</span></div>'+ 
+    return '<div class="hardware-panel '+(mode==='system'?'hardware-system-page ':'')+(collapsible?' hardware-collapsible':' hardware-static-panel')+'" data-expanded="'+(startExpanded?'true':'false')+'"'+(collapsible?' onclick="toggleHardwarePanel(event)" role="button" tabindex="0" title="Click to expand or collapse hardware details."':' title="Detailed hardware and device inventory."')+'>'+
+        '<div class="hardware-panel-title"><span class="hardware-title-left"><i class="bi bi-pc-display-horizontal"></i><span>Hardware</span></span><span class="hardware-expand-label">'+(collapsible?(startExpanded?'Collapse details':'Expand details'):'')+'</span></div>'+ 
         '<div class="hardware-collapsed-summary">'+collapsedSummary+'</div>'+ 
         '<div class="hardware-grid hardware-grid-expanded">'+            hwBlock('bi-pc-display','System','System manufacturer and model detected from Windows hardware inventory.',[systemText],'hardware-compact-card')+ 
             hwBlock('bi-laptop','Device','Chassis/device type detected without admin rights.',[hardwareNameLine(deviceType)],'hardware-compact-card')+ 
-            hwBlock('bi-lightning-charge','Power Profile','Active Windows power plan. Click to open Power & Sleep settings.',[powerText],'hardware-compact-card',"eel.open_ms_settings('powersleep')()")+ 
-            hwBlock('bi-clock-history','Uptime','Live system uptime since last boot. Long uptime may indicate a restart is needed.', ['<span class="hardware-uptime-chip'+uptimeClass+'">'+esc(uptimeText)+'</span>'], 'hardware-compact-card '+uptimeStatus)+ 
+            hwBlock('bi-lightning-charge','Power Profile','Active Windows power plan. Click to open Power Options.',[powerText],'hardware-compact-card',"appBridge.open_power_options()()")+ 
+            hwBlock('bi-clock-history','Uptime','Live system uptime since last boot. Long uptime may indicate a restart is needed.', ['<span class="hardware-uptime-chip hardware-uptime-live'+uptimeClass+'">'+esc(uptimeText)+'</span>'], 'hardware-compact-card hardware-uptime-card '+uptimeStatus)+ 
             hwBlock('bi-cpu','CPU','Processor model, manufacturer, core/thread count, and clock information available from Windows without admin rights.',cpuItems,'hardware-wide hardware-cpu-card')+ 
             hwBlock('bi-gpu-card','GPU','Graphics adapter model, vendor, memory, driver, and available clock telemetry. NVIDIA clocks use nvidia-smi when present; AMD/Intel clocks may be undetected without vendor telemetry.',gpuParts,'hardware-wide hardware-gpu-card')+ 
             hwBlock('bi-memory','Memory','Installed RAM, speed, module count, and module manufacturer when available.',[memText],'hardware-memory-card')+ 
             hwBlock('bi-hdd','Storage','Detected physical storage model, manufacturer, size, media type, and interface. Usage is intentionally not shown here.',storageItems,'hardware-storage-card')+ 
         '</div>'+ 
     '</div>';
+}
+
+function renderSystemInfoPreview(data){
+    var hp=data.hardware_profile||{};
+    var sysManufacturer=hp.system_manufacturer||data.system_manufacturer||'Undetected';
+    var sysModel=hp.system_model||data.system_model||'Undetected';
+    var cleanManufacturer=cleanHardwareDisplay(sysManufacturer);
+    var cleanModel=cleanHardwareDisplay(sysModel);
+    var systemName=(cleanManufacturer==='Undetected'&&cleanModel==='Undetected')?'Undetected':((cleanManufacturer+' '+cleanModel).trim());
+    hardwareUptimeBaseSeconds=parseInt(hp.uptime_seconds||data.uptime_seconds||0,10)||0;
+    hardwareUptimeBaseTs=Date.now();
+    var uptimeText=hp.uptime||data.uptime||formatUptimeSeconds(hardwareUptimeBaseSeconds);
+    return '<div class="system-preview-card">'+
+        '<div class="system-preview-header">'+
+            '<div><div class="system-preview-title"><i class="bi bi-pc-display-horizontal me-1"></i>System Information</div></div>'+
+        '</div>'+
+        '<div class="system-preview-chip-row">'+
+            '<span class="hardware-summary-chip"><strong>System:</strong> '+esc(systemName)+'</span>'+
+            '<span class="hardware-summary-chip system-preview-uptime" title="Don&#39;t forget to turn off your PC when not in use."><strong>Uptime:</strong> <span class="hardware-uptime-live">'+esc(uptimeText)+'</span></span>'+
+        '</div>'+
+    '</div>';
+}
+
+function systemInfoValueContent(value){
+    var clean=cleanHardwareDisplay(value||'Undetected');
+    var truncated=clean.length>13;
+    var shown=truncated?clean.slice(0,13):clean;
+    var attrs=truncated?' title="'+esc(clean)+'" data-hover-title="'+esc(clean)+'"':'';
+    return '<strong class="system-info-value-content'+(truncated?' is-truncated':'')+'"'+attrs+'><span class="system-info-value-text">'+esc(shown)+'</span>'+(truncated?'<span class="system-info-overflow-hint" aria-hidden="true">?</span>':'')+'</strong>';
+}
+function systemInfoValue(label,value,extraClass,action,icon){
+    var attrs=action?' onclick="'+action+'" role="button" tabindex="0" title="Open Power Options"':'';
+    var iconHtml=icon?'<i class="bi '+icon+'"></i>':'';
+    return '<div class="system-info-value '+(extraClass||'')+'"'+attrs+'><span>'+iconHtml+esc(label)+'</span>'+systemInfoValueContent(value)+'</div>';
+}
+function systemInfoSection(icon,title,body,extraClass){
+    return '<section class="system-info-result '+(extraClass||'')+'">'+
+        '<div class="system-info-result-title"><i class="bi '+icon+'"></i><span>'+esc(title)+'</span></div>'+
+        '<div class="system-info-result-body">'+body+'</div>'+
+    '</section>';
+}
+function systemInfoItem(title,details){
+    return '<div class="system-info-item"><div class="system-info-item-name">'+esc(cleanHardwareDisplay(title||'Undetected'))+'</div>'+
+        (details?'<div class="system-info-item-grid">'+details+'</div>':'')+
+    '</div>';
+}
+function renderSystemHardwareCard(data){
+    var hp=data.hardware_profile||{};
+    var processors=hp.processors||data.processors||[];
+    var gpus=data.gpus||[];
+    var disks=hp.storage_devices||data.storage_devices||[];
+    var manufacturer=cleanHardwareDisplay(hp.system_manufacturer||data.system_manufacturer||'Undetected');
+    var model=cleanHardwareDisplay(hp.system_model||data.system_model||'Undetected');
+    var systemName=(manufacturer==='Undetected'&&model==='Undetected')?'Undetected':(manufacturer+' '+model).trim();
+    var deviceType=cleanHardwareDisplay(hp.device_type||data.device_type||'Undetected');
+    var powerName=cleanHardwareDisplay(hp.power_profile_name||data.power_profile_name||'Undetected');
+    var powerGuid=cleanHardwareDisplay(hp.power_profile_guid||data.power_profile_guid||'');
+    var uptimeText=hp.uptime||data.uptime||formatUptimeSeconds(parseInt(hp.uptime_seconds||data.uptime_seconds||0,10)||0);
+    var memoryText=cleanHardwareDisplay(data.ram||'Undetected');
+    var memCount=cleanHardwareDisplay(hp.memory_module_count||data.memory_module_count||'Undetected');
+    var memMfr=cleanHardwareDisplay(hp.memory_manufacturers||data.memory_manufacturers||'Undetected');
+
+    var axis=''+
+        '<div class="system-info-axis-item"><span>System</span><strong>'+esc(systemName)+'</strong></div>'+
+        '<div class="system-info-axis-item"><span>Device</span><strong>'+esc(deviceType)+'</strong></div>'+
+        '<div class="system-info-axis-item system-info-axis-uptime" title="Don&#39;t forget to turn off your PC when not in use."><span>Uptime</span><strong class="hardware-uptime-live">'+esc(uptimeText)+'</strong></div>';
+
+    var powerHead=''+
+        systemInfoValue('Power Profile',powerName,'system-info-power-value',"appBridge.open_power_options()()",'bi-lightning-charge')+
+        (powerGuid&&powerGuid!=='Undetected'?systemInfoValue('GUID',powerGuid,'system-info-guid-value'):'');
+
+    var cpuBody='';
+    if(processors.length){
+        for(var ci=0;ci<processors.length;ci++){
+            var c=processors[ci]||{};
+            cpuBody+=systemInfoItem(c.name||data.cpu||'Undetected',''+
+                systemInfoValue('Maker',c.manufacturer)+
+                systemInfoValue('Cores',c.cores)+
+                systemInfoValue('Threads',c.threads)+
+                systemInfoValue('Current',c.current_clock)+
+                systemInfoValue('Max',c.max_clock)+
+                systemInfoValue('L2',c.l2_cache)+
+                systemInfoValue('L3',c.l3_cache)+
+                systemInfoValue('Socket',c.socket));
+        }
+    }else{
+        cpuBody=systemInfoItem(data.cpu||'Undetected','');
+    }
+
+    var gpuBody='';
+    if(gpus.length){
+        for(var gi=0;gi<gpus.length;gi++){
+            var g=gpus[gi]||{};
+            gpuBody+=systemInfoItem(g.name||'Undetected',''+
+                systemInfoValue('Vendor',g.vendor)+
+                systemInfoValue('Resolution',g.resolution)+
+                systemInfoValue('VRAM',g.memory)+
+                systemInfoValue('GPU Clock',g.gpu_clock)+
+                systemInfoValue('Mem Clock',g.memory_clock)+
+                systemInfoValue('Driver',g.driver_version)+
+                systemInfoValue('Refresh',g.refresh_rate));
+        }
+    }else{
+        gpuBody=systemInfoItem('Undetected','');
+    }
+
+    var memoryBody=''+
+        systemInfoValue('Memory',memoryText)+
+        systemInfoValue('Modules',memCount)+
+        systemInfoValue('Manufacturer',memMfr);
+
+    var storageBody='';
+    if(disks.length){
+        for(var si=0;si<disks.length;si++){
+            var d=disks[si]||{};
+            storageBody+=systemInfoItem(d.model||'Undetected',''+
+                systemInfoValue('Size',d.size)+
+                systemInfoValue('Media',d.media_type)+
+                systemInfoValue('Interface',d.interface)+
+                systemInfoValue('Maker',d.manufacturer));
+        }
+    }else{
+        storageBody=systemInfoItem('Undetected','');
+    }
+
+    return '<div class="card compact-card dashboard-card system-info-card">'+
+        '<div class="system-info-card-head">'+
+            '<div class="system-info-head-main"><div class="section-title mb-1"><i class="bi bi-pc-display-horizontal icon-blue"></i>Hardware</div><div class="system-info-axis">'+axis+'</div></div>'+
+            '<div class="system-info-head-side">'+powerHead+'</div>'+
+        '</div>'+
+        '<div class="system-info-result-grid">'+
+            systemInfoSection('bi-cpu','CPU',cpuBody,'system-info-result-cpu')+
+            systemInfoSection('bi-gpu-card','GPU',gpuBody,'system-info-result-gpu')+
+            systemInfoSection('bi-memory','Memory',memoryBody,'system-info-result-memory')+
+            systemInfoSection('bi-hdd','Storage',storageBody,'system-info-result-storage')+
+        '</div>'+
+    '</div>';
+}
+
+function renderSystemInfoPage(){
+    var container=document.getElementById('system-info-content');
+    if(!container)return;
+    if(!lastScanData){
+        container.innerHTML='<div class="card compact-card remediation-empty text-center py-5">'+
+            '<i class="bi bi-pc-display-horizontal remediation-empty-icon"></i>'+
+            '<h5 class="fw-bold mt-2">No system information loaded</h5>'+
+            '<p class="small text-muted mb-3">Run a system scan first to populate the dedicated System Information page.</p>'+
+            '<button onclick="refreshSystemInfo()" class="btn btn-sm btn-primary mx-auto"><i class="bi bi-play-fill me-1"></i>Run Scan</button>'+
+        '</div>';
+        return;
+    }
+    container.innerHTML='<div class="system-info-panel-wrap">'+renderSystemHardwareCard(lastScanData)+'</div>';
+    scheduleHoverTitles(container);
+}
+
+async function refreshSystemInfo(){
+    await runScan();
+    showPage('system');
 }
 
 
@@ -724,13 +654,12 @@ async function runScan(){
     document.getElementById('risk-wheel-wrapper').style.display='none';
     document.getElementById('remediation-box').innerHTML='';
     document.getElementById('risk-alerts-box').innerHTML='';
-    document.getElementById('hardware-header').innerHTML='';
-    var data=await eel.perform_scan()();
+    document.getElementById('system-info-preview').innerHTML='';
+    var data=await appBridge.perform_scan()();
     if(scanPage)scanPage.classList.remove('is-scanning');
     lastScanData=data;
     scanProfileState.system=true;
     renderRemediationPage();
-    // Build the Apps & Programs data after a scan so the size breakdown is ready.
     loadPrograms({auto:true});
     var totalIssues=(data.risk_factor||0)+(data.caution_factor||0);
     document.getElementById('welcome-msg').innerText='Welcome, '+(data.user||'User');
@@ -740,29 +669,28 @@ async function runScan(){
     else if(data.caution_factor>0)rt='<span class="text-suggestion fw-bold">'+data.caution_factor+' suggestion'+(data.caution_factor>1?'s':'')+'</span>';
     else rt='<span class="text-success fw-bold">no issues</span>';
     document.getElementById('risk-msg').innerHTML="Your system scan has found "+rt+".";
-    document.getElementById('hardware-header').innerHTML=renderHardwareHeader(data);
+    document.getElementById('system-info-preview').innerHTML=renderSystemInfoPreview(data);
+    renderSystemInfoPage();
 
-    /* Top risk alert box removed to avoid duplicate dashboard warnings.
-       Recommended Actions below now carries the lighter alert styling. */
     document.getElementById('risk-alerts-box').innerHTML='';
 
-    /* Remediation */
+    /* REMEDIATION */
     var rem="";
-    function ri(t,f,label){label=label||'Fix';return '<li><span class="recommended-action-text">'+t+'</span><span class="recommended-action-buttons"><button class="fix-btn fix-btn-outline" onclick="'+f+'">'+label+'</button></span></li>'}
-    if(data.user_security&&data.user_security.uac==="Disabled")rem+=ri("Enable UAC","eel.open_uac_settings()()");
-    if(data.drive_encryption==="Not Encrypted")rem+=ri("Enable BitLocker Drive Encryption","eel.open_ms_settings('encryption')()");
-    if(data.lock_security&&data.lock_security.password_set==="No")rem+=ri("Set a password for your user account","eel.open_ms_settings('signin')()");
-    if(data.lock_security&&data.lock_security.lock_screen==="Disabled")rem+=ri("Enable screen lock timeout","eel.open_ms_settings('lockscreen')()");
-    if(data.auto_login==="Enabled")rem+=ri("Disable automatic login","eel.open_netplwiz()()");
-    if(data.guest_account==="Enabled")rem+=ri("Disable the Guest account","eel.open_computer_management()()");
-    if(data.defender_realtime==="Disabled")rem+=ri("Enable Windows Defender Real-time Protection","eel.open_ms_settings('defender')()");
-    if(data.fw_details&&!data.fw_details.windows_fw_enabled&&data.fw_details.third_party_count===0)rem+=ri("Enable Windows Firewall","eel.open_ms_settings('firewall')()" );
+    function ri(t,f,label){label=label||'Fix';return '<div class="recommended-action-row"><span class="recommended-action-text">'+t+'</span><span class="recommended-action-buttons"><button class="fix-btn fix-btn-outline" onclick="'+f+'">'+label+'</button></span></div>'}
+    if(data.user_security&&data.user_security.uac==="Disabled")rem+=ri("Enable UAC","appBridge.open_uac_settings()()");
+    if(data.drive_encryption==="Not Encrypted")rem+=ri("Enable BitLocker Drive Encryption","appBridge.open_ms_settings('encryption')()");
+    if(data.lock_security&&data.lock_security.password_set==="No")rem+=ri("Set a password for your user account","appBridge.open_ms_settings('signin')()");
+    if(data.lock_security&&data.lock_security.lock_screen==="Disabled")rem+=ri("Enable screen lock timeout","appBridge.open_ms_settings('lockscreen')()");
+    if(data.auto_login==="Enabled")rem+=ri("Disable automatic login","appBridge.open_netplwiz()()");
+    if(data.guest_account==="Enabled")rem+=ri("Disable the Guest account","appBridge.open_computer_management()()");
+    if(data.defender_realtime==="Disabled")rem+=ri("Enable Windows Defender Real-time Protection","appBridge.open_ms_settings('defender')()");
+    if(data.fw_details&&!data.fw_details.windows_fw_enabled&&data.fw_details.third_party_count===0)rem+=ri("Enable Windows Firewall","appBridge.open_ms_settings('firewall')()" );
     if(data.uptime_status&&data.uptime_status==='risk')rem+=ri("Review long system uptime before restarting","showPage('remediation')","Review");
     if(data.remote_software&&data.remote_software.length>0)for(var rsi=0;rsi<data.remote_software.length;rsi++)rem+=ri("Review remote access software: "+esc(data.remote_software[rsi]),"runUninstaller('"+jsArg(data.remote_software[rsi])+"')","Run Uninstaller");
-    if(data.browsers)for(var j=0;j<data.browsers.length;j++){if(data.browsers[j].discontinued){if(data.browsers[j].name==='Internet Explorer'&&data.win_release==='11')continue;if(data.browsers[j].name==='Internet Explorer'&&data.win_release==='10')rem+=ri("Disable Internet Explorer in 'Turn Windows features on or off'","eel.open_windows_features()()");else rem+=ri("Review discontinued browser: "+esc(data.browsers[j].name),"runUninstaller('"+jsArg(data.browsers[j].name)+"')","Run Uninstaller")}}
-    if(rem)document.getElementById('remediation-box').innerHTML='<div class="recommended-actions-alert"><strong class="small"><i class="bi bi-exclamation-triangle-fill me-1"></i>Recommended Actions:</strong><ul class="small mb-0 ps-3 mt-1">'+rem+'</ul></div>';
+    if(data.browsers)for(var j=0;j<data.browsers.length;j++){if(data.browsers[j].discontinued){if(data.browsers[j].name==='Internet Explorer'&&data.win_release==='11')continue;if(data.browsers[j].name==='Internet Explorer'&&data.win_release==='10')rem+=ri("Disable Internet Explorer in 'Turn Windows features on or off'","appBridge.open_windows_features()()");else rem+=ri("Review discontinued browser: "+esc(data.browsers[j].name),"runUninstaller('"+jsArg(data.browsers[j].name)+"')","Run Uninstaller")}}
+    if(rem)document.getElementById('remediation-box').innerHTML='<div class="recommended-actions-alert"><strong class="recommended-actions-label"><i class="bi bi-exclamation-triangle-fill"></i><span>Recommended Actions:</span></strong><div class="recommended-actions-list">'+rem+'</div></div>';
 
-    /* Risk Wheel */
+    /* RISK WHEEL */
     document.getElementById('risk-wheel-wrapper').style.display='block';
     document.getElementById('risk-number').innerText=totalIssues;
     if(riskChartInstance)riskChartInstance.destroy();
@@ -770,14 +698,14 @@ async function runScan(){
     var cc,cd;if(totalIssues===0){cc=['#3b82f6'];cd=[1]}else{cc=['#ef4444','#f59e0b','#22c55e'];cd=[data.risk_factor||0,data.caution_factor||0,Math.max(0,10-totalIssues)]}
     riskChartInstance=new Chart(ctx,{type:'doughnut',data:{datasets:[{data:cd,backgroundColor:cc,borderWidth:0}]},options:{cutout:'75%',plugins:{legend:{display:false},tooltip:{enabled:false}}}});
 
-    /* Browsers */
+    /* BROWSERS */
     var bHtml='';
     if(data.browsers&&data.browsers.length>0){for(var bi=0;bi<data.browsers.length;bi++){var b=data.browsers[bi];if(b.name==='Internet Explorer'&&data.win_release==='11')continue;var st=(data.browser_status&&data.browser_status[b.name])||'caution';var sC=getBrowserStatusClass(st),bC=getBrowserBadgeClass(st),sL=st==='good'?'Current':st==='risk'?'Outdated':'Check';var dB=b.discontinued?'<span class="disc-badge">Discontinued</span>':'';var eB=b.engine?'<span class="text-muted" style="font-size:.6rem;margin-left:4px;">'+esc(b.engine)+'</span>':'';var sClick=' browser-status-click" onclick="openBrowserUpdate(\''+esc(b.name)+'\')" title="Click to check for updates"';bHtml+='<div class="d-flex justify-content-between align-items-center small py-1"><span>'+esc(b.name)+dB+eB+'</span><span><span class="'+sC+' dashboard-version-value">'+esc(b.version)+'</span> <span class="status-badge '+bC+sClick+' style="font-size:.6rem;">'+sL+'</span></span></div>'}}else bHtml='<div class="text-muted small">No browsers detected</div>';
 
     /* AV */
     var avH='';if(data.av_details&&data.av_details.length>0){for(var ai=0;ai<data.av_details.length;ai++){var avN=data.av_details[ai];var isMbF=avN.indexOf('(Free)')>=0;avH+='<div class="d-flex justify-content-between align-items-center small py-1"><span>'+esc(avN)+'</span><span class="status-badge '+(isMbF?'bg-info-subtle':'bg-good')+'">'+(isMbF?'Installed':'Active')+'</span></div>'}}else avH='<div class="text-danger small py-1">None Detected</div>';
 
-    /* Firewall */
+    /* FIREWALL */
     var fwH='';if(data.fw_details&&data.fw_details.products&&data.fw_details.products.length>0){for(var fi=0;fi<data.fw_details.products.length;fi++){var f=data.fw_details.products[fi];var pS=(f.profiles&&f.profiles.length>0)?' <span class="text-muted">('+f.profiles.join(', ')+')</span>':'';fwH+='<div class="d-flex justify-content-between align-items-center small py-1"><span>'+esc(f.name)+pS+'</span><span class="status-badge bg-good">'+f.status+'</span></div>'}}else fwH='<div class="text-danger small py-1">No Firewall Active</div>';
 
     /* PM */
@@ -786,11 +714,10 @@ async function runScan(){
     /* RS */
     var rsH='';if(data.remote_software&&data.remote_software.length>0){for(var rri=0;rri<data.remote_software.length;rri++)rsH+='<div class="d-flex justify-content-between align-items-center small py-1"><span class="text-danger">'+esc(data.remote_software[rri])+'</span><span><span class="status-badge bg-bad">Review</span><button class="fix-btn" onclick="runUninstaller(\''+jsArg(data.remote_software[rri])+'\')">Run Uninstaller</button>'+hintQ('Remote tools can be legitimate. If not in use, run the registered uninstaller to reduce remote access exposure.')+'</span></div>'}else rsH='<div class="text-success small py-1">None Detected <i class="bi bi-check-circle-fill"></i></div>';
 
-    /* Encryption detail */
+    /* ENCRYPTION */
     var encH='<div class="d-flex justify-content-between align-items-center small py-1"><span>Drive Encryption</span><span class="'+sc(data.drive_encryption,'Encrypted')+'">'+esc(data.drive_encryption||'Unknown')+'</span></div>';
     if(data.drive_encryption==='Encrypted'){encH+='<div class="d-flex justify-content-between align-items-center small py-1 ps-2"><span class="text-muted">Type</span><span>'+esc(data.encryption_method||'Unknown')+(data.encryption_version?' ('+esc(data.encryption_version)+')':'')+'</span></div>'}
 
-    /* Hints for Secure Boot, TPM, Lock Screen, Sleep */
     var sbVal=sv(data.os_security,'secure_boot'),tpmVal=sv(data.os_security,'tpm');
     var sbH=sbVal!=='Enabled'?hintQ(data.win_release==='10'?'Enable Secure Boot in BIOS/UEFI. On Windows 10, this may not be available on all hardware.':'Enable Secure Boot in BIOS/UEFI. Restart, enter BIOS (Del/F2/F12), find Secure Boot under Security/Boot.'):'';
     var tpmH=tpmVal.indexOf('Present')<0?hintQ(data.win_release==='10'?'Enable TPM in BIOS (Security > TPM). On Windows 10, TPM 2.0 may not be available.':'Enable TPM in BIOS. TPM 2.0 is required for Windows 11.'):'';
@@ -798,7 +725,7 @@ async function runScan(){
     var lockH=(sv(data.lock_security,'lock_screen')==='Disabled'||!pwSet)?hintQ(pwSet?'Enable lock screen timeout in Settings \u2192 Personalization \u2192 Lock screen.':'Set a password first, then enable lock screen timeout.'):'';
     var sleepH=(sv(data.lock_security,'sleep_timeout')==='Disabled'||!pwSet)?hintQ(!pwSet?'Set a password, then configure sleep in Settings \u2192 System \u2192 Power & Sleep.':'Configure sleep in Settings \u2192 System \u2192 Power & Sleep.'):'';
     var wuVal=data.windows_update||'Unknown';
-    var wuH='<div class="security-item"><div class="label">Windows Update</div><div class="value clickable-result '+sc(wuVal,'Running','text-success','text-suggestion')+'" onclick="eel.open_windows_update()()" title="Click to open Windows Update">'+esc(wuVal)+'</div></div>';
+    var wuH='<div class="security-item"><div class="label">Windows Update</div><div class="value clickable-result '+sc(wuVal,'Running','text-success','text-suggestion')+'" onclick="appBridge.open_windows_update()()" title="Click to open Windows Update">'+esc(wuVal)+'</div></div>';
     var acctType=sv(data.user_security,'account_type','Unknown');
     var acctClass=acctType.indexOf('Microsoft')>=0?'text-success':acctType.indexOf('Domain')>=0?'text-suggestion':'';
     var winrecH='<div class="security-item"><div class="label">Recovery Env</div><div class="value '+sc(data.windows_recovery,'Enabled')+'">'+(data.windows_recovery||'Unknown')+'</div></div>';
@@ -844,24 +771,24 @@ async function runUninstaller(n){
     var msg='Run the Windows-registered uninstaller for "'+n+'"?\n\nSystemShield will not remove files directly.';
     if(!confirm(msg))return;
     try{
-        var r=await eel.uninstall_program(n)();
+        var r=await appBridge.uninstall_program(n)();
         if(r&&r.status==='ok'){
             alert(r.message||('Uninstaller opened for '+n+'.'));
         }else{
             var m=(r&&r.message)?r.message:('No registered uninstaller was found for '+n+'.');
             if(confirm(m+'\n\nOpen Apps & Features instead?')){
-                await eel.open_apps_settings()();
+                await appBridge.open_apps_settings()();
             }
         }
     }catch(e){
         if(confirm('No registered uninstaller was found for '+n+'.\n\nOpen Apps & Features instead?')){
-            await eel.open_apps_settings()();
+            await appBridge.open_apps_settings()();
         }
     }
 }
 async function reviewSoftware(n){return runUninstaller(n)}
 async function uninstallSoftware(n){return runUninstaller(n)}
-async function openBrowserUpdate(n){await eel.open_browser_update(n)()}
+async function openBrowserUpdate(n){await appBridge.open_browser_update(n)()}
 
 /* REMEDIATION ANALYSIS */
 function remediationSeverityClass(sev){sev=(sev||'Info').toLowerCase();if(sev==='critical'||sev==='risk')return 'risk';if(sev==='caution'||sev==='review')return 'caution';return 'info'}
@@ -958,11 +885,11 @@ function remediationButton(f){
     if(!f)return '';
     if(f.softwareName){
         return '<button class="btn btn-sm btn-outline-primary remediation-action" onclick="runUninstaller(\''+jsArg(f.softwareName)+'\')"><i class="bi bi-box-arrow-up-right me-1"></i>Run Uninstaller</button> '+
-               '<button class="btn btn-sm btn-outline-secondary remediation-action" onclick="eel.open_apps_settings()()"><i class="bi bi-list-ul me-1"></i>Open Apps &amp; Features</button>';
+               '<button class="btn btn-sm btn-outline-secondary remediation-action" onclick="appBridge.open_apps_settings()()"><i class="bi bi-list-ul me-1"></i>Open Apps &amp; Features</button>';
     }
     var shortcut=f.shortcut;
     if(!shortcut)return '';
-    var map={apps:["Apps Settings","eel.open_apps_settings()()"],defender:["Windows Security","eel.open_ms_settings('defender')()"],firewall:["Firewall Settings","eel.open_ms_settings('firewall')()"],signin:["Sign-in Options","eel.open_ms_settings('signin')()"],lockscreen:["Lock Screen","eel.open_ms_settings('lockscreen')()"],powersleep:["Power Settings","eel.open_ms_settings('powersleep')()"],encryption:["Encryption Settings","eel.open_ms_settings('encryption')()"],windows_update:["Windows Update","eel.open_windows_update()()"],remote_desktop:["Remote Desktop","eel.open_ms_settings('remote_desktop')()"],network:["Network Settings","eel.open_ms_settings('network')()"],recovery:["Recovery Settings","eel.open_ms_settings('recovery')()"],uac:["UAC Settings","eel.open_uac_settings()()"],netplwiz:["User Accounts","eel.open_netplwiz()()"],computer_management:["Computer Management","eel.open_computer_management()()"],windows_features:["Windows Features","eel.open_windows_features()()"]};
+    var map={apps:["Apps Settings","appBridge.open_apps_settings()()"],defender:["Windows Security","appBridge.open_ms_settings('defender')()"],firewall:["Firewall Settings","appBridge.open_ms_settings('firewall')()"],signin:["Sign-in Options","appBridge.open_ms_settings('signin')()"],lockscreen:["Lock Screen","appBridge.open_ms_settings('lockscreen')()"],powersleep:["Power Settings","appBridge.open_ms_settings('powersleep')()"],encryption:["Encryption Settings","appBridge.open_ms_settings('encryption')()"],windows_update:["Windows Update","appBridge.open_windows_update()()"],remote_desktop:["Remote Desktop","appBridge.open_ms_settings('remote_desktop')()"],network:["Network Settings","appBridge.open_ms_settings('network')()"],recovery:["Recovery Settings","appBridge.open_ms_settings('recovery')()"],uac:["UAC Settings","appBridge.open_uac_settings()()"],netplwiz:["User Accounts","appBridge.open_netplwiz()()"],computer_management:["Computer Management","appBridge.open_computer_management()()"],windows_features:["Windows Features","appBridge.open_windows_features()()"]};
     var m=map[shortcut];if(!m)return '';return '<button class="btn btn-sm btn-outline-primary remediation-action" onclick="'+m[1]+'"><i class="bi bi-box-arrow-up-right me-1"></i>'+m[0]+'</button>'
 }
 function refreshRemediationPage(){
@@ -996,7 +923,7 @@ async function loadPrograms(opts){
     if(scanBtn){scanBtn.disabled=true;scanBtn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>'+(firstSoftwareScan?'Scanning':'Refreshing');}
     if(el&&!opts.auto)el.innerHTML='<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> '+(firstSoftwareScan?'Scanning programs...':'Refreshing programs...')+'</div>';
     else if(el&&opts.auto&&!programCache.length)el.innerHTML='<div class="text-center py-3 text-muted small">Building app inventory from last scan...</div>';
-    var data=await eel.get_programs()();programCache=data.programs||[];programDataCache=data;scanProfileState.software=true;renderRemediationPage();
+    var data=await appBridge.get_programs()();programCache=data.programs||[];programDataCache=data;scanProfileState.software=true;renderRemediationPage();
     if(scanBtn){scanBtn.disabled=false;scanBtn.innerHTML='<i class="bi bi-arrow-clockwise me-1"></i>Refresh';}
     document.getElementById('prog-count-label').innerHTML='<i class="bi bi-box icon-blue"></i>Programs ('+(data.program_count||0)+')';
     document.getElementById('prog-size-label').innerText='Total: '+data.total_program_size;
@@ -1020,20 +947,27 @@ function getProgramExportData(){
     return cloned;
 }
 function filterPrograms(){renderPrograms()}
-function sortPrograms(t){if(!programCache)return;programCache.sort(function(a,b){if(t==="name-asc")return a.name.localeCompare(b.name);if(t==="name-desc")return b.name.localeCompare(a.name);if(t==="size-asc")return a.size-b.size;if(t==="size-desc")return b.size-a.size;return 0});renderPrograms()}
+function programIdentifierRank(source){
+    var s=String(source||'User');
+    if(s==='User')return 0;
+    if(s==='Windows')return 1;
+    if(s==='Store')return 2;
+    return 3;
+}
+function sortPrograms(t){if(!programCache)return;programCache.sort(function(a,b){if(t==="name-asc")return a.name.localeCompare(b.name);if(t==="name-desc")return b.name.localeCompare(a.name);if(t==="identifier-asc"){var ar=programIdentifierRank(a.source),br=programIdentifierRank(b.source);if(ar!==br)return ar-br;return a.name.localeCompare(b.name)}if(t==="size-asc")return a.size-b.size;if(t==="size-desc")return b.size-a.size;return 0});renderPrograms()}
 function renderPrograms(){
     var el=document.getElementById('programList');if(!el)return;
     var q=(document.getElementById('prog-search')?document.getElementById('prog-search').value:'').toLowerCase();
     var fl=q?programCache.filter(function(p){return p.name.toLowerCase().indexOf(q)>=0}):programCache;
     var h='';for(var i=0;i<fl.length;i++){var p=fl[i];var si='',sC='';if(p.source==='Store'){si='<i class="bi bi-bag-fill"></i>';sC='src-store'}else if(p.source==='Windows'){si='<i class="bi bi-windows"></i>';sC='src-windows'}else{si='<i class="bi bi-person-fill"></i>';sC='src-user'}
-    h+='<div class="prog-item"><div class="d-flex align-items-center gap-1" style="overflow:hidden;"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+esc(p.name)+'</span><span class="src-badge '+sC+'">'+si+' '+esc(p.source)+'</span></div><span class="text-muted" style="white-space:nowrap;margin-left:8px;">'+(p.size>0?p.size+' MB':'-')+'</span></div>'}
+    h+='<div class="prog-item"><span class="src-badge '+sC+'" title="'+esc(p.source||'User')+'">'+si+'<span>'+esc(p.source||'User')+'</span></span><span class="prog-name" title="'+esc(p.name)+'">'+esc(p.name)+'</span><span class="prog-size">'+(p.size>0?p.size+' MB':'-')+'</span></div>'}
     if(fl.length===0)h='<div class="text-muted text-center py-2">No programs match your search.</div>';el.innerHTML=h;
 }
 
 /* UTILITY */
 function toggleMinimize(btn){var sec=btn.closest('.net-section');sec.classList.toggle('minimized');btn.innerHTML=sec.classList.contains('minimized')?'+':'&minus;';btn.title=sec.classList.contains('minimized')?'Expand':'Minimize'}
-async function doNetworkRefresh(){if(!confirm('Refresh the network connection now?\n\nThis will release and renew the current IP configuration.'))return;try{var r=await eel.network_refresh()();alert(r&&r.message?r.message:'Network refreshed.');loadNetwork()}catch(e){alert('Error: '+e)}}
-async function doNetworkReset(){if(!confirm('Reset the main network adapter now?\n\nThis will temporarily disconnect and reconnect the adapter. Continue?'))return;try{var r=await eel.network_reset()();alert(r&&r.message?r.message:'Network reset complete. A restart may be required.')}catch(e){alert('Error: '+e)}}
+async function doNetworkRefresh(){if(!confirm('Refresh the network connection now?\n\nThis will release and renew the current IP configuration.'))return;try{var r=await appBridge.network_refresh()();alert(r&&r.message?r.message:'Network refreshed.');loadNetwork()}catch(e){alert('Error: '+e)}}
+async function doNetworkReset(){if(!confirm('Reset the main network adapter now?\n\nThis will temporarily disconnect and reconnect the adapter. Continue?'))return;try{var r=await appBridge.network_reset()();alert(r&&r.message?r.message:'Network reset complete. A restart may be required.')}catch(e){alert('Error: '+e)}}
 
 /* NETWORK */
 async function loadNetwork(){
@@ -1042,7 +976,7 @@ async function loadNetwork(){
     document.getElementById('net-dns-alerts').innerHTML='';
     document.getElementById('net-top-alerts').innerHTML='';
     document.getElementById('net-vpn-bar').innerHTML='';
-    var data=await eel.get_network_info()();
+    var data=await appBridge.get_network_info()();
     networkData=data;
     scanProfileState.network=true;
     renderRemediationPage();
@@ -1052,8 +986,8 @@ async function loadNetwork(){
     if(!data.vpn_clients||data.vpn_clients.length===0)ta+='<div class="info-alert"><i class="bi bi-shield-lock me-1"></i>Consider using a VPN while browsing online to encrypt your traffic and protect your privacy.</div>';
     if(data.dns_alerts&&data.dns_alerts.length>0){for(var i=0;i<data.dns_alerts.length;i++)ta+=makeRiskAlert(data.dns_alerts[i]);ta+='<div class="alert alert-warning py-2 px-3 mb-3 small" style="border-radius:8px;"><i class="bi bi-info-circle me-1"></i>Consider changing DNS to a trusted provider (1.1.1.1 or 8.8.8.8).</div>'}
     if(data.dumping_software&&data.dumping_software.length>0)for(var di=0;di<data.dumping_software.length;di++)ta+=makeSuggestionAlert('Packet capture/proxy tool detected: '+esc(data.dumping_software[di]),'<button class="fix-btn" onclick="runUninstaller(\''+jsArg(data.dumping_software[di])+'\')">Run Uninstaller</button>'+hintQ('Packet capture, proxy, and sniffer tools can inspect traffic. If not in use, uninstall or disable them.'));
-    if(data.ssh_server_enabled)ta+=makeRiskAlert('SSH Server (sshd) is running — allows remote connections','<button class="fix-btn" onclick="eel.open_windows_features()()">Fix</button>'+hintQ('Disable OpenSSH Server in Windows Features or stop the sshd service to prevent remote SSH access.'));
-    if(data.telnet_enabled)ta+=makeRiskAlert('Telnet Client is enabled — insecure remote protocol','<button class="fix-btn" onclick="eel.open_windows_features()()">Fix</button>'+hintQ('Disable Telnet Client in Turn Windows features on or off. Telnet transmits data including passwords in plain text.'));
+    if(data.ssh_server_enabled)ta+=makeRiskAlert('SSH Server (sshd) is running — allows remote connections','<button class="fix-btn" onclick="appBridge.open_windows_features()()">Fix</button>'+hintQ('Disable OpenSSH Server in Windows Features or stop the sshd service to prevent remote SSH access.'));
+    if(data.telnet_enabled)ta+=makeRiskAlert('Telnet Client is enabled — insecure remote protocol','<button class="fix-btn" onclick="appBridge.open_windows_features()()">Fix</button>'+hintQ('Disable Telnet Client in Turn Windows features on or off. Telnet transmits data including passwords in plain text.'));
     document.getElementById('net-top-alerts').innerHTML=ta;
 
     function netVal(label,value,cls){
@@ -1063,7 +997,6 @@ async function loadNetwork(){
     function adapterIcon(a){return a.type==='wifi'?'bi-wifi':a.type==='virtual'?'bi-diagram-3':a.type==='loopback'?'bi-arrow-repeat':'bi-ethernet'}
     function adapterTypeLabel(a){return a.type==='ethernet'?'Wired':a.type==='wifi'?'Wi-Fi':a.type||'Adapter'}
 
-    /* Find primary adapter: has gateway, not virtual/loopback, not APIPA */
     var mainIdx=-1;
     if(data.adapters&&data.adapters.length>0){
         for(var mi=0;mi<data.adapters.length;mi++){
@@ -1184,7 +1117,7 @@ async function vtPickAndScanFile(){
     var key=getVTSessionKey();
     if(!key)return;
     showVTResult({loading:true});
-    var r=await eel.vt_pick_and_scan_file(key)();
+    var r=await appBridge.vt_pick_and_scan_file(key)();
     showVTResult(r);
 }
 async function vtCheckHash(){
@@ -1193,7 +1126,7 @@ async function vtCheckHash(){
     var h=document.getElementById('vt-hash-input').value.trim();
     if(!h){showVTResult({error:'Please enter a hash value'});return}
     showVTResult({loading:true});
-    var r=await eel.vt_check_hash(h,key)();
+    var r=await appBridge.vt_check_hash(h,key)();
     showVTResult(r);
 }
 function closeVTPopup(){
@@ -1257,15 +1190,71 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeVTPopup
 /* SUMMARY/EXPORT */
 async function showSummary(){
     if(!lastScanData){alert('Please run a scan first.');return}
-    var s=await eel.generate_summary(lastScanData,getProgramExportData(),networkData)();
+    var s=await appBridge.generate_summary(lastScanData,getProgramExportData(),networkData)();
     var ov=document.getElementById('summary-overlay'),ct=document.getElementById('summary-content');
     var iH='';if(s.issues&&s.issues.length>0){for(var i=0;i<s.issues.length;i++)iH+='<div class="summary-issue"><strong>'+esc(s.issues[i].description)+'</strong><div class="fix">\u21b3 '+esc(s.issues[i].remediation)+'</div></div>'}else iH='<div class="text-success small text-center py-2">No issues found \u2014 your system looks great!</div>';
     ct.innerHTML='<div id="pdf-export-container"><div class="pdf-page"><div class="d-flex justify-content-between align-items-start mb-3"><div><h4 class="fw-bold mb-1"><i class="bi bi-shield-check text-primary me-2"></i>SystemShield Report</h4><div class="small text-muted">'+esc(s.generated_at)+'</div></div><button class="btn-close" onclick="closeSummary()"></button></div><div class="row g-2 mb-3"><div class="col-6"><div class="small"><span class="text-muted">User:</span> '+esc(s.system?s.system.user:'')+'</div></div><div class="col-6"><div class="small"><span class="text-muted">OS:</span> '+esc(s.system?s.system.os:'')+'</div></div><div class="col-6"><div class="small"><span class="text-muted">CPU:</span> '+esc(s.system?s.system.cpu:'')+'</div></div><div class="col-6"><div class="small"><span class="text-muted">RAM:</span> '+esc(s.system?s.system.ram:'')+'</div></div></div><div class="d-flex gap-3 mb-3"><div class="text-center"><div class="fs-3 fw-bold text-danger">'+s.risk_count+'</div><div class="small text-muted">Risks</div></div><div class="text-center"><div class="fs-3 fw-bold text-suggestion">'+s.caution_count+'</div><div class="small text-muted">Suggestions</div></div></div><h6 class="fw-bold mb-2">Issues &amp; Remediation</h6>'+iH+'</div>'+
+    '<div class="pdf-page"><h5 class="fw-bold mb-2"><i class="bi bi-pc-display-horizontal text-primary me-2"></i>System Information</h5>'+bSIE(s)+'</div>'+
     '<div class="pdf-page"><h5 class="fw-bold mb-2"><i class="bi bi-speedometer2 text-primary me-2"></i>Dashboard Details</h5>'+bDE(s)+'</div>'+
     '<div class="pdf-page"><h5 class="fw-bold mb-2"><i class="bi bi-box text-primary me-2"></i>Apps &amp; Programs</h5>'+bPE(s)+'</div>'+
     '<div class="pdf-page"><h5 class="fw-bold mb-2"><i class="bi bi-wifi text-primary me-2"></i>Network Security</h5>'+bNE(s)+'</div></div>'+
     '<div class="d-flex gap-2 mt-3"><button onclick="exportSummaryPDF()" class="btn btn-primary btn-sm flex-fill"><i class="bi bi-file-pdf me-1"></i>Export to PDF</button><button onclick="copySummary()" class="btn btn-outline-secondary btn-sm flex-fill"><i class="bi bi-clipboard me-1"></i>Copy to Clipboard</button></div>';
     ov.style.display='flex';
+}
+function bSIE(s){
+    var info=s.system_info||{};
+    var hp=info.hardware_profile||{};
+    var processors=info.processors||hp.processors||[];
+    var gpus=info.gpus||[];
+    var disks=info.storage_devices||hp.storage_devices||[];
+    var manufacturer=cleanHardwareDisplay(hp.system_manufacturer||info.system_manufacturer||'Undetected');
+    var model=cleanHardwareDisplay(hp.system_model||info.system_model||'Undetected');
+    var deviceType=cleanHardwareDisplay(hp.device_type||info.device_type||'Undetected');
+    var powerName=cleanHardwareDisplay(hp.power_profile_name||info.power_profile_name||'Undetected');
+    var powerGuid=cleanHardwareDisplay(hp.power_profile_guid||info.power_profile_guid||'Undetected');
+    var memCount=cleanHardwareDisplay(hp.memory_module_count||info.memory_module_count||'Undetected');
+    var memMfr=cleanHardwareDisplay(hp.memory_manufacturers||info.memory_manufacturers||'Undetected');
+    var uptime=hp.uptime||info.uptime||'Undetected';
+    var h='';
+    var systemLabel=(manufacturer==='Undetected'&&model==='Undetected')?'Undetected':((manufacturer+' '+model).trim());
+    h+='<div class="small mb-2"><strong>System:</strong> '+esc(systemLabel)+'</div>';
+    h+='<div class="small mb-2"><strong>Device Type:</strong> '+esc(deviceType)+'</div>';
+    h+='<div class="small mb-2"><strong>Memory:</strong> '+esc(cleanHardwareDisplay(info.ram||'Undetected'))+' | <strong>Modules:</strong> '+esc(memCount)+' | <strong>Manufacturer:</strong> '+esc(memMfr)+'</div>';
+    h+='<div class="small mb-2"><strong>Power Profile:</strong> '+esc(powerName)+(powerGuid&&powerGuid!=='Undetected'?' ('+esc(powerGuid)+')':'')+'</div>';
+    h+='<div class="small mb-2"><strong>Uptime:</strong> '+esc(uptime)+'</div>';
+    if(processors.length>0){
+        h+='<div class="small mb-1"><strong>Processors:</strong></div>';
+        for(var i=0;i<processors.length;i++){
+            var p=processors[i]||{};
+            h+='<div class="small ps-2">'+esc(cleanHardwareDisplay(p.name||'Undetected'))+
+                ' | Maker: '+esc(cleanHardwareDisplay(p.manufacturer||'Undetected'))+
+                ' | Cores: '+esc(cleanHardwareDisplay(p.cores||'Undetected'))+
+                ' | Threads: '+esc(cleanHardwareDisplay(p.threads||'Undetected'))+
+                ' | Current: '+esc(cleanHardwareDisplay(p.current_clock||'Undetected'))+
+                ' | Max: '+esc(cleanHardwareDisplay(p.max_clock||'Undetected'))+'</div>';
+        }
+    }
+    if(gpus.length>0){
+        h+='<div class="small mb-1 mt-2"><strong>Graphics:</strong></div>';
+        for(var gi=0;gi<gpus.length;gi++){
+            var g=gpus[gi]||{};
+            h+='<div class="small ps-2">'+esc(cleanHardwareDisplay(g.name||'Undetected'))+
+                ' | Vendor: '+esc(cleanHardwareDisplay(g.vendor||'Undetected'))+
+                ' | VRAM: '+esc(cleanHardwareDisplay(g.memory||'Undetected'))+
+                ' | Driver: '+esc(cleanHardwareDisplay(g.driver_version||'Undetected'))+'</div>';
+        }
+    }
+    if(disks.length>0){
+        h+='<div class="small mb-1 mt-2"><strong>Storage Devices:</strong></div>';
+        for(var di=0;di<disks.length;di++){
+            var d=disks[di]||{};
+            h+='<div class="small ps-2">'+esc(cleanHardwareDisplay(d.model||'Undetected'))+
+                ' | Size: '+esc(cleanHardwareDisplay(d.size||'Undetected'))+
+                ' | Media: '+esc(cleanHardwareDisplay(d.media_type||'Undetected'))+
+                ' | Interface: '+esc(cleanHardwareDisplay(d.interface||'Undetected'))+'</div>';
+        }
+    }
+    return h;
 }
 function bDE(s){var d=s.dashboard||{};var h='';h+='<div class="small mb-2"><strong>OS Security:</strong> Secure Boot: '+esc(sv(d.os_security,'secure_boot'))+' | TPM: '+esc(sv(d.os_security,'tpm'))+' | VBS: '+esc(sv(d.os_security,'vbs'))+'</div>';h+='<div class="small mb-2"><strong>User Security:</strong> Admin: '+esc(sv(d.user_security,'is_admin'))+' | UAC: '+esc(sv(d.user_security,'uac'))+' | Account: '+esc(sv(d.user_security,'account_type'))+'</div>';h+='<div class="small mb-2"><strong>Lock Security:</strong> Password: '+esc(sv(d.lock_security,'password_set'))+' | Lock Screen: '+esc(sv(d.lock_security,'lock_screen'))+' | Sleep: '+esc(sv(d.lock_security,'sleep_timeout'))+'</div>';h+='<div class="small mb-2"><strong>Encryption:</strong> '+esc(d.drive_encryption||'Unknown')+(d.encryption_method&&d.encryption_method!=='Unknown'?' ('+esc(d.encryption_method)+')':'')+'</div>';h+='<div class="small mb-2"><strong>Windows Update:</strong> '+esc(d.windows_update||'Unknown')+' | <strong>RDP:</strong> '+esc(d.remote_desktop||'Unknown')+'</div>';h+='<div class="small mb-2"><strong>Guest:</strong> '+esc(d.guest_account||'Unknown')+' | <strong>Auto Login:</strong> '+esc(d.auto_login||'Unknown')+'</div>';h+='<div class="small mb-2"><strong>Defender:</strong> RT: '+esc(d.defender_realtime||'Unknown')+' | Ver: '+esc(d.defender_version||'Unknown')+'</div>';if(d.av_details&&d.av_details.length>0)h+='<div class="small mb-2"><strong>AV:</strong> '+d.av_details.map(esc).join(', ')+'</div>';if(d.browsers&&d.browsers.length>0){h+='<div class="small mb-1"><strong>Browsers:</strong></div>';for(var i=0;i<d.browsers.length;i++)h+='<div class="small ps-2">'+esc(d.browsers[i].name)+' '+esc(d.browsers[i].version||'')+(d.browsers[i].discontinued?' (Discontinued)':'')+'</div>'}if(d.remote_software&&d.remote_software.length>0)h+='<div class="small mb-2 text-danger"><strong>Remote Software:</strong> '+d.remote_software.map(esc).join(', ')+'</div>';if(d.storage&&d.storage.length>0){h+='<div class="small mb-1"><strong>Storage:</strong></div>';for(var si=0;si<d.storage.length;si++)h+='<div class="small ps-2">'+esc(d.storage[si].drive)+': '+d.storage[si].used+'/'+d.storage[si].total+' ('+d.storage[si].percent+'%)</div>'}return h}
 function bPE(s){
@@ -1288,15 +1277,28 @@ function exportSummaryPDF(){var el=document.getElementById('pdf-export-container
 function copySummary(){var el=document.getElementById('pdf-export-container');navigator.clipboard.writeText(el.innerText).then(function(){var btn=event.target.closest('button');if(btn){var o=btn.innerHTML;btn.innerHTML='<i class="bi bi-check me-1"></i>Copied!';setTimeout(function(){btn.innerHTML=o},2000)}})}
 
 /* THEME */
-function toggleTheme(){var b=document.body;b.classList.toggle('dark');var d=b.classList.contains('dark');localStorage.setItem('ss-theme',d?'dark':'light');document.getElementById('theme-icon').className=d?'bi bi-sun-fill':'bi bi-moon-fill';document.querySelector('meta[name="theme-color"]').content=d?'#111318':'#212f4d';document.getElementById('theme-toggle').title=d?'Light mode':'Dark mode';try{eel.set_titlebar_theme(d)()}catch(e){}}
-function initTheme(){var d=localStorage.getItem('ss-theme')==='dark';if(d){document.body.classList.add('dark');document.getElementById('theme-icon').className='bi bi-sun-fill';document.querySelector('meta[name="theme-color"]').content='#111318';document.getElementById('theme-toggle').title='Light mode'}try{eel.set_titlebar_theme(d)()}catch(e){}}
+function toggleTheme(){var b=document.body;b.classList.toggle('dark');var d=b.classList.contains('dark');localStorage.setItem('ss-theme',d?'dark':'light');document.getElementById('theme-icon').className=d?'bi bi-sun-fill':'bi bi-moon-fill';document.querySelector('meta[name="theme-color"]').content=d?'#111318':'#212f4d';document.getElementById('theme-toggle').title=d?'Light mode':'Dark mode';try{appBridge.set_titlebar_theme(d)()}catch(e){}}
+function initTheme(){var d=localStorage.getItem('ss-theme')==='dark';if(d){document.body.classList.add('dark');document.getElementById('theme-icon').className='bi bi-sun-fill';document.querySelector('meta[name="theme-color"]').content='#111318';document.getElementById('theme-toggle').title='Light mode'}try{appBridge.set_titlebar_theme(d)()}catch(e){}}
 
 /* SIDEBAR TOGGLE */
 function toggleSidebar(){var sb=document.getElementById('sidebar'),bd=document.getElementById('sidebar-backdrop');if(window.innerWidth<=768){var open=sb.classList.toggle('mobile-open');bd.style.display=open?'block':'none'}else{var col=sb.classList.toggle('collapsed');localStorage.setItem('ss-sidebar',col?'collapsed':'expanded')}}
 function initSidebar(){if(window.innerWidth>768&&localStorage.getItem('ss-sidebar')==='collapsed')document.getElementById('sidebar').classList.add('collapsed')}
 
 /* INIT */
-initTheme();initSidebar();initVTSessionNotice();initLanguage();initAppInfo();
+async function initApp(){
+    try{
+        await loadPageFragments();
+    }catch(e){
+        console.error(e);
+        alert('SystemShield could not load one or more page files.');
+    }
+    initTheme();
+    initSidebar();
+    initVTSessionNotice();
+    initLanguage();
+    initAppInfo();
+}
+initApp();
 </script>
 </body>
 </html>

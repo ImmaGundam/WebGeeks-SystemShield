@@ -1,0 +1,20 @@
+        <!-- SYSTEM INFORMATION -->
+        <div id="page-system" class="page-section">
+            <div class="system-page-head mb-3">
+                <div class="system-title-block">
+                    <h2 class="fw-bold mb-1"><i class="bi bi-pc-display-horizontal icon-blue"></i>System Information</h2>
+                    <p class="small text-muted mb-0" style="max-width:760px;">Dedicated hardware and device details view for system inventory, uptime, storage, memory, and power profile information.</p>
+                </div>
+                <div class="system-top-actions">
+                    <button onclick="refreshSystemInfo()" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-clockwise me-1"></i>Refresh System Scan</button>
+                </div>
+            </div>
+            <div id="system-info-content">
+                <div class="card compact-card remediation-empty text-center py-5">
+                    <i class="bi bi-pc-display-horizontal remediation-empty-icon"></i>
+                    <h5 class="fw-bold mt-2">No system information loaded</h5>
+                    <p class="small text-muted mb-3">Run a system scan first to populate the dedicated System Information page.</p>
+                    <button onclick="refreshSystemInfo()" class="btn btn-sm btn-primary mx-auto"><i class="bi bi-play-fill me-1"></i>Run Scan</button>
+                </div>
+            </div>
+        </div>

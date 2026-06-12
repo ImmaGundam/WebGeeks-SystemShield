@@ -1,0 +1,120 @@
+        <!-- ABOUT -->
+        <div id="page-about" class="page-section">
+            <header class="about-header mb-3">
+                <div>
+                    <h2 class="fw-bold mb-1"><i class="bi bi-info-circle icon-blue"></i>About</h2>
+                    <p class="text-muted small mb-0">Project information, version status, support links, and trusted documentation references.</p>
+                </div>
+            </header>
+
+            <div class="about-layout">
+                <div class="card compact-card about-hero-card">
+                    <div class="about-hero-main">
+                        <span class="about-logo-hover" data-tooltip="Icon design was inspired by my personal desktop. I drew a simple sketch, gave AI a picture of it, and viola."><img src="data\logo.png" class="about-logo" alt="SystemShield Logo" title="Icon design was inspired by my personal desktop. I drew a simple sketch, gave AI a picture of it, and viola." aria-label="Icon design was inspired by my personal desktop. I drew a simple sketch, gave AI a picture of it, and viola."></span>
+                        <div class="about-title-block">
+                            <h4 class="fw-bold mb-1">WebGeeks SystemShield</h4>
+                            <div class="small text-muted mb-2">Windows security auditing and remediation guidance</div>
+                            <div class="about-version-line">
+                                <span class="about-version-label">Program Version:</span>
+                                <span class="about-version-value" id="app-version-text">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="about-status-card about-status-embedded">
+                        <div class="section-title"><i class="bi bi-arrow-repeat icon-blue"></i>Version & Updates</div>
+                        <div class="about-status-row">
+                            <span>Current</span>
+                            <strong id="about-current-version" class="about-status-value current neutral">Loading...</strong>
+                        </div>
+                        <div class="about-status-row">
+                            <span>Latest</span>
+                            <strong id="about-latest-version" class="about-status-value latest neutral">Not checked</strong>
+                        </div>
+                        <div class="d-flex gap-2 mt-2 flex-wrap">
+                            <button id="updateBtn" onclick="checkUpdate()" class="btn btn-sm btn-primary">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Check for Updates
+                            </button>
+                            <button onclick="window.open('https://github.com/ImmaGundam/WebGeeks-SystemShield/releases/latest','_blank')" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-box-arrow-up-right me-1"></i>Open Releases
+                            </button>
+                        </div>
+                    </div>
+                    <p class="about-copy">
+                        SystemShield is a free Windows security auditing tool. It reviews system settings,
+                        installed software, browser versions, network configuration, and security features, then
+                        presents detections and findings on a risk scale and provide guidance to help the user
+                        understand the risks they cause.
+                        <br><br>
+                        This tool is made to stop remote-support scams. If you know someone who you believe is
+                        being scammed on their computer, tell them &quot;Try SystemShield.&quot;
+                        <br>
+                        <a href="https://www.SystemShield.net" target="_blank" class="about-inline-link">https://www.SystemShield.net</a>
+                    </p>
+                    <p class="small text-muted mb-2 mt-2 about-policy-note">
+                        SystemShield does not remove files directly. Software actions use Windows-registered
+                        uninstall entries or Windows Settings shortcuts.
+                    </p>
+                    <div class="about-action-grid">
+                        <a href="https://systemshield.net/" target="_blank" class="about-action">
+                            <i class="bi bi-globe2"></i><span>Website</span>
+                        </a>
+                        <a href="https://github.com/ImmaGundam" target="_blank" class="about-action">
+                            <i class="bi bi-github"></i><span>GitHub</span>
+                        </a>
+                        <a href="https://github.com/sponsors/ImmaGundam" target="_blank" class="about-action support-link">
+                            <i class="bi bi-heart-fill"></i><span>Sponsor</span>
+                        </a>
+                        <a href="https://buymeacoffee.com/immagundam" target="_blank" class="about-action support-link">
+                            <i class="bi bi-cup-hot-fill"></i><span>Buy Coffee</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card compact-card about-docs-card">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <div>
+                            <div class="section-title mb-1"><i class="bi bi-journal-text icon-blue"></i>Documentation & Trusted References</div>
+                            <p class="small text-muted mb-0">Sources used for user-facing guidance and detection context.</p>
+                        </div>
+                    </div>
+                    <div class="about-doc-grid">
+                        <a href="https://github.com/ImmaGundam/WebGeeks-SystemShield" target="_blank">
+                            <i class="bi bi-github"></i>
+                            <span><strong>SystemShield Documentation</strong><small>Project README, releases, and source notes.</small></span>
+                        </a>
+                        <a href="https://learn.microsoft.com/en-us/windows/security/operating-system-security/device-management/windows-security-configuration-framework/windows-security-baselines" target="_blank">
+                            <i class="bi bi-microsoft"></i>
+                            <span><strong>Microsoft Security Baselines</strong><small>Baseline configuration guidance for Windows security posture.</small></span>
+                        </a>
+                        <a href="https://learn.microsoft.com/en-us/windows/apps/develop/launch/launch-settings" target="_blank">
+                            <i class="bi bi-windows"></i>
+                            <span><strong>Windows Settings Shortcuts</strong><small>Microsoft documentation for ms-settings links used by remediation buttons.</small></span>
+                        </a>
+                        <a href="https://learn.microsoft.com/en-us/windows/win32/msi/uninstall-registry-key" target="_blank">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span><strong>Windows Uninstall Registry</strong><small>Reference for DisplayName, Publisher, InstallLocation, and UninstallString values.</small></span>
+                        </a>
+                        <a href="https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-service" target="_blank">
+                            <i class="bi bi-hdd-network"></i>
+                            <span><strong>Windows Service Detection</strong><small>Reference for service Name, DisplayName, PathName, State, and StartMode.</small></span>
+                        </a>
+                        <a href="https://learn.microsoft.com/en-us/defender-endpoint/detect-block-potentially-unwanted-apps-microsoft-defender-antivirus" target="_blank">
+                            <i class="bi bi-shield-exclamation"></i>
+                            <span><strong>Microsoft PUA Guidance</strong><small>Reference for potentially unwanted application behavior and classification.</small></span>
+                        </a>
+                        <a href="https://www.cisa.gov/news-events/alerts/2023/01/25/cisa-nsa-and-ms-isac-release-advisory-malicious-use-rmm-software" target="_blank">
+                            <i class="bi bi-building-lock"></i>
+                            <span><strong>CISA RMM Advisory</strong><small>Context for malicious use of legitimate remote monitoring tools.</small></span>
+                        </a>
+                        <a href="https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams" target="_blank">
+                            <i class="bi bi-telephone-x"></i>
+                            <span><strong>FTC Tech Support Scams</strong><small>Consumer guidance explaining remote-access abuse in scam scenarios.</small></span>
+                        </a>
+                        <a href="https://docs.virustotal.com/reference/overview" target="_blank">
+                            <i class="bi bi-search"></i>
+                            <span><strong>VirusTotal API Reference</strong><small>Reference for file and hash analysis used by the optional lookup page.</small></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>

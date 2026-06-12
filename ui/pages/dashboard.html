@@ -1,0 +1,17 @@
+        <!-- DASHBOARD -->
+        <div id="page-scan" class="page-section active">
+            <div class="header-row">
+                <div class="header-left">
+                    <h4 id="welcome-msg" class="fw-bold mb-0">Welcome,</h4>
+                    <p id="risk-msg" class="text-muted mt-0 mb-1" style="font-size:.85rem;">Ready to scan your system.</p>
+                    <div id="system-info-preview" class="system-info-preview"></div>
+                </div>
+                <div id="risk-wheel-wrapper" class="risk-wheel-container" style="display:none;">
+                    <canvas id="riskChart"></canvas>
+                    <div class="risk-center-text"><div id="risk-number" class="number">0</div><div class="label">Issues</div></div>
+                </div>
+            </div>
+            <div id="risk-alerts-box"></div>
+            <div id="remediation-box"></div>
+            <div id="report-content" class="row g-2 dashboard-grid"><div class="dashboard-full text-center py-5"><p class="text-muted">Analysis results will appear here after scanning.</p></div></div>
+        </div>

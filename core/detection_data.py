@@ -1,42 +1,13 @@
-"""
-detection_lists.py  -  WebGeeks SystemShield Detection List v1.3.2
-Reference data for all detection and classification logic in System_Scanner.py.
-
-Each threat category lives in its own clearly-named constant.
-Edit this file to add/remove entries without ever touching scan logic.
-
-NAME-BASED LISTS  (substring match against installed program display names)
-    BAD_SOFTWARE        - PUPs / bloatware
-    SCAMWARE            - fake optimizers / scam repair tools
-    TORRENT_CLIENTS     - bad torrent / P2P software
-    CRYPTO_MINERS       - cryptocurrency mining software
-    HACKING_UTILS       - pentest / offensive-security tools
-    DATA_EXFIL_TOOLS    - bulk-transfer / sync tools abused in ransomware
-    REMOTE_SHELL_TOOLS  - SSH / shell / lateral-movement utilities
-    RAT_TOOLS           - Remote Access Trojans / malware frameworks
-    CREDENTIAL_STEALERS - info-stealer / credential-dumping malware
-
-REGISTRY + EXE-PATH LISTS  (name, [reg_keys], [exe_paths])
-    VPN_DETECTION       - VPN clients
-    PM_DETECTION        - password managers
-    RS_DETECTION        - remote access / remote control software
-    RMM_DETECTION       - Remote Monitoring & Management platforms
-
-BROWSER DATA
-    LATEST_BROWSER_VERSIONS, BROWSER_META, BROWSER_REGISTRY, BROWSER_EXE_PATHS
-
-NETWORK DATA
-    KNOWN_BAD_DNS
-
-PROGRAM CLASSIFICATION
-    SYSTEM_PUBLISHERS
-"""
+# detection_data.py - detection data module
+# Purpose: Store static scanner reference lists and source-backed detection metadata.
 
 import os
 import winreg as _winreg
 
-# Detection list version. Keep this matched with System_Scanner.VERSION and About page.
-DETECTION_LIST_VERSION = "1.3.2"
+from core.version import DETECTION_VERSION
+
+# Detection list version component used by MainProgram.EngineVersion.DetectionVersion.
+DETECTION_LIST_VERSION = DETECTION_VERSION
 
 
 # ============================================================================
@@ -134,7 +105,7 @@ DATA_EXFIL_TOOLS = [
 ]
 
 # -- Remote Shell / Lateral-Movement Tools ------------------------------------
-# Third-party tools only — flagged for awareness rather than automatic risk.
+# Third-party tools only -- flagged for awareness rather than automatic risk.
 # NOTE: OpenSSH and Telnet are built-in Windows optional features and are
 # intentionally excluded here. Their service/feature state is checked
 # separately in get_network_info() via ssh_server_status / telnet_enabled,
@@ -339,6 +310,11 @@ RS_DETECTION = [
         [],
         [r"C:\Program Files\RustDesk\rustdesk.exe",
          r"C:\Users\*\AppData\Roaming\RustDesk\rustdesk.exe"]),
+    ("SwiftDesk",
+        [r"SOFTWARE\SwiftDesk", r"Software\SwiftDesk"],
+        [r"C:\Program Files\SwiftDesk\SwiftDesk.exe",
+         r"C:\Program Files (x86)\SwiftDesk\SwiftDesk.exe",
+         r"C:\Users\*\AppData\Roaming\SwiftDesk\SwiftDesk.exe"]),
     ("Splashtop",
         [r"SOFTWARE\Splashtop Inc."],
         [r"C:\Program Files (x86)\Splashtop\Splashtop Remote\Client\SRClient.exe"]),
@@ -467,18 +443,6 @@ DUMPING_SOFTWARE = [
 # ============================================================================
 # BROWSER DETECTION DATA
 # ============================================================================
-
-# Fallback version numbers used when live version fetch fails / is offline
-LATEST_BROWSER_VERSIONS = {
-    "Google Chrome": 133,
-    "Microsoft Edge": 133,
-    "Mozilla Firefox": 135,
-    "Brave": 133,
-    "Opera": 116,
-    "Opera GX": 116,
-    "Vivaldi": 7,
-    "Arc": 1,
-}
 
 # Engine type + discontinued status per browser name
 BROWSER_META = {
@@ -641,7 +605,7 @@ SYSTEM_PUBLISHERS = [
 # SOURCE-BACKED DETECTION NOTES
 # ============================================================================
 # Optional metadata for review/documentation. Existing scanner logic can ignore
-# this constant. Keep tuple schemas above unchanged unless System_Scanner.py is
+# this constant. Keep tuple schemas above unchanged unless main.py is
 # updated to consume richer metadata.
 
 DETECTION_SOURCE_NOTES = {

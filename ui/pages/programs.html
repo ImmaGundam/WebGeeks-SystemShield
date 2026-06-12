@@ -1,0 +1,37 @@
+        <!-- APPS & PROGRAMS -->
+        <div id="page-programs" class="page-section programs-page">
+            <div class="d-flex justify-content-between align-items-center mb-2 programs-header-row">
+                <h2 class="fw-bold mb-0"><i class="bi bi-box icon-blue"></i>Apps &amp; Programs</h2>
+                <div class="d-flex gap-2 align-items-center programs-search-row">
+                    <input type="text" id="prog-search" class="search-bar" placeholder="Search programs..." oninput="filterPrograms()">
+                    <select id="prog-sort" onchange="sortPrograms(this.value)" class="form-select form-select-sm" style="width:auto;font-size:.75rem;">
+                        <option value="name-asc">Name &#8593;</option><option value="name-desc">Name &#8595;</option>
+                        <option value="identifier-asc">Identifier</option>
+                        <option value="size-desc">Size &#8595;</option><option value="size-asc">Size &#8593;</option>
+                    </select>
+                    <button id="prog-scan-btn" onclick="loadPrograms()" class="btn btn-sm btn-primary"><i class="bi bi-search me-1"></i>Scan</button>
+                    <button onclick="appBridge.open_apps_settings()()" class="btn btn-sm btn-outline-primary programs-header-action"><i class="bi bi-gear me-1"></i>Apps</button>
+                    <button onclick="appBridge.open_windows_features()()" class="btn btn-sm btn-outline-primary programs-header-action"><i class="bi bi-toggles me-1"></i>Features</button>
+                </div>
+            </div>
+            <div id="programs-storage-section"></div>
+            <div class="icon-legend programs-icon-legend">
+                <span><i class="bi bi-person-fill" style="color:#3730a3;"></i> User &mdash; User-installed app</span>
+                <span><i class="bi bi-windows" style="color:#1e40af;"></i> Windows &mdash; System component</span>
+                <span><i class="bi bi-bag-fill" style="color:#065f46;"></i> Store &mdash; Microsoft Store app</span>
+                <label class="programs-pdf-export-option" title="Controls the Apps & Programs section in Export / Summary. Off uses the top 30 programs in the current sort order; on includes all detected programs in the current sort order.">
+                    <input type="checkbox" id="prog-pdf-all" onchange="setProgramPdfMode(this.checked)">
+                    <span>PDF: All apps</span>
+                    <small>Top 30 when off</small>
+                </label>
+            </div>
+            <div id="bad-software-section"></div>
+            <div class="card compact-card programs-window-card">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span id="prog-count-label" class="section-title mb-0">Programs</span>
+                    <span id="prog-size-label" class="text-muted small"></span>
+                </div>
+                <div id="programList" class="scroll-list programs-scroll-list"><p class="text-muted text-center py-3">Click "Scan" to load programs.</p></div>
+                <div id="size-breakdown-area" class="mt-2" style="display:none;"></div>
+            </div>
+        </div>

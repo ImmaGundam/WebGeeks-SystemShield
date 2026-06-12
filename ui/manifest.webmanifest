@@ -1,0 +1,19 @@
+{
+  "name": "WebGeeks SystemShield",
+  "short_name": "SystemShield",
+  "display": "standalone",
+  "theme_color": "#252d3a",
+  "background_color": "#f4f7fb",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
+    {
+      "src": "data/logo.png",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
