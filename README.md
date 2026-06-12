@@ -28,10 +28,7 @@ SystemShield is a lightweight security and system auditing
 application designed to help users understand what may be putting their
 computer at risk.
 
-SystemShield reviews system settings, installed software, browser versions,
-network configuration, hardware/runtime information, and security features,
-then presents the results in a clear browser-based dashboard with expanded
-remediation guidance.
+SystemShield is a free Windows security auditing tool. It reviews system settings, installed software, browser versions, netwrok configuration, and security features, then presents detections on a risk scale with guidance on remediation.
 
 It is designed to help identify:
 
