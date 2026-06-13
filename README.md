@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <strong>A lightweight home system security auditing tool for Windows 10/11.</strong>
+  <strong>A lightweight system security auditing tool for Windows 10/11.</strong>
 </p>
 
 <p align="center">
@@ -18,17 +18,16 @@
   <a href="https://github.com/ImmaGundam/WebGeeks-SystemShield/releases">Releases</a>
 </p>
 
+---
+<h3 align="center"> Current Release </h3>
 <div align="center">
-     |-------------------------------------------------------|<br>
-     <b>Current Version:</b> 1.4.2 - <b>Release:</b> 6/11/2026<br>
-     |-------------------------------------------------------|<br>
+     <b>Current Version:</b> 1.4.2 - <b>Release:</b> 6/11/2026
 </div>
-<br>
-SystemShield is a lightweight security and system auditing
-application designed to help users understand what may be putting their
-computer at risk.
 
-SystemShield is a free Windows security auditing tool. It reviews system settings, installed software, browser versions, netwrok configuration, and security features, then presents detections on a risk scale with guidance on remediation.
+---
+### SystemShield
+A free Windows security auditing tool to help users understand what may be putting their computer at risk. It reviews system settings, installed software, browser versions, netwrok configuration, and security features, then presents detections on a risk scale with guidance on remediation.
+This tool was made to stop remote-support scams. It specifically targets RDP software and backdoor loops. If you know someone who you believe is being scammed on their computer, tell them, "Sir/Madam, You should try SystemShield. Just go to SystemShield.net"
 
 It is designed to help identify:
 
@@ -41,7 +40,7 @@ It is designed to help identify:
 - Disabled or weakened system security features
 - Long system uptime that may call for a proper restart
 
-SystemShield is not an antivirus, malware remover, or endpoint protection
+SystemShield is not an anti-virus, malware remover, or endpoint protection
 platform. It is a reporting and auditing tool that helps users review system
 health, security posture, and configuration risks. SystemShield includes a
 heuristic detection list focused on identifying common security and
@@ -52,9 +51,9 @@ utilities.
 
 
 
-## Screenshots
+<h2 align="center"> Screenshots</h2>
 
-Screenshots are organized by app page.
+<p align="center">Screenshots are organized by each page</p>
 
 ---
 
@@ -291,9 +290,9 @@ Front-end | UI
 Powered by:
 ├──  Python: Scanner / detection logic
 ├──  HTML/CSS/JavaScript: UI
-├──  PyWebView — API
-├──  PowerShell — inline PowerShell command strings through Python
-├──  PyInstaller — Packager for distribution
+├──  PyWebView                   — API
+├──  PowerShell                  — inline PowerShell command strings through Python
+├──  PyInstaller                 — Packager for distribution
 
 ```
 
